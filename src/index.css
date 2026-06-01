@@ -20,8 +20,9 @@
       transition focus:outline-none focus:ring-2 focus:ring-wave-500/60 disabled:cursor-not-allowed
       disabled:opacity-50;
   }
+  /* Primary = the signature teal→violet gradient with a hover glow. */
   .btn-primary {
-    @apply btn bg-wave-500 text-ink-950 hover:bg-wave-400;
+    @apply btn bg-gradient-to-r from-wave-500 to-glow-500 text-ink-950 hover:shadow-glow-teal;
   }
   .btn-ghost {
     @apply btn border border-ink-600 text-slate-200 hover:border-wave-500 hover:text-white;
@@ -37,11 +38,22 @@
   .label {
     @apply mb-1.5 block text-sm font-medium text-slate-300;
   }
+  /* Glassy neon card. */
   .card {
-    @apply rounded-xl border border-ink-700 bg-ink-900/70 p-5 shadow-lg shadow-black/20;
+    @apply rounded-xl border border-ink-700 bg-ink-900/60 p-5 shadow-lg shadow-black/30 backdrop-blur;
+  }
+  /* Add to a .card to make it an interactive surface (lift + teal glow on hover). */
+  .card-interactive {
+    @apply transition duration-200 hover:-translate-y-0.5 hover:border-wave-500/50 hover:shadow-glow-teal;
   }
   .chip {
     @apply inline-flex items-center gap-1 rounded-full border border-ink-600 bg-ink-800 px-2.5
       py-0.5 text-xs font-medium text-slate-300;
+  }
+  /* Spotlight backdrop for the hero — layered radial glows. */
+  .hero-spotlight {
+    background-image:
+      radial-gradient(40rem 20rem at 15% -10%, rgba(45, 212, 191, 0.16), transparent 60%),
+      radial-gradient(36rem 20rem at 90% 0%, rgba(139, 92, 246, 0.16), transparent 60%);
   }
 }

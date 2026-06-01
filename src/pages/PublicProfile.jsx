@@ -5,6 +5,9 @@ import { sendRequest } from "../api/connections";
 import { apiErrorMessage } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import Spinner from "../components/Spinner";
+import EqMeter from "../components/EqMeter";
+import OnAir from "../components/OnAir";
+import { genreHex } from "../lib/genreColors";
 
 function ContactPanel({ username }) {
   const [message, setMessage] = useState("");
@@ -115,18 +118,14 @@ export default function PublicProfile() {
       <div className="card">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white">@{profile.username}</h1>
+            <h1 className="font-display text-2xl font-bold text-white">@{profile.username}</h1>
             <p className="mt-1 text-slate-400">{location || "Location not set"}</p>
           </div>
-          <span
-            className={`chip ${
-              profile.is_available
-                ? "border-wave-500/40 text-wave-400"
-                : "text-slate-500"
-            }`}
-          >
-            {profile.is_available ? "Available to jam" : "Not available"}
-          </span>
+          <OnAir
+            available={profile.is_available}
+            label="Available to jam"
+            className="shrink-0"
+          />
         </div>
 
         {profile.bio && (
@@ -140,9 +139,13 @@ export default function PublicProfile() {
             </h3>
             <div className="flex flex-wrap gap-2">
               {instruments.map((mi) => (
-                <span key={mi.instrument.id} className="chip border-glow-500/40 text-glow-400">
+                <span
+                  key={mi.instrument.id}
+                  className="inline-flex items-center gap-2 rounded-lg border border-ink-700 bg-ink-800/60 px-3 py-1.5 text-sm text-slate-200"
+                >
+                  <EqMeter proficiency={mi.proficiency} />
                   {mi.instrument.name}
-                  <span className="text-slate-500">· {mi.proficiency}</span>
+                  <span className="text-xs text-slate-500">{mi.proficiency}</span>
                 </span>
               ))}
             </div>
@@ -155,11 +158,18 @@ export default function PublicProfile() {
               Genres
             </h3>
             <div className="flex flex-wrap gap-2">
-              {genres.map((g) => (
-                <span key={g.id} className="chip">
-                  {g.name}
-                </span>
-              ))}
+              {genres.map((g) => {
+                const c = genreHex(g.name);
+                return (
+                  <span
+                    key={g.id}
+                    className="rounded-full border px-2.5 py-0.5 text-xs font-medium"
+                    style={{ borderColor: `${c}55`, color: c }}
+                  >
+                    {g.name}
+                  </span>
+                );
+              })}
             </div>
           </div>
         )}

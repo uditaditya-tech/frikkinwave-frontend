@@ -99,16 +99,20 @@ export default function Discover() {
   return (
     <div>
       {/* Hero */}
-      <section className="mb-8">
-        <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-          Find your next <span className="text-wave-500">jam partner</span>.
+      <section className="hero-spotlight relative mb-8 overflow-hidden rounded-2xl border border-ink-800 px-6 py-10 sm:px-8 sm:py-12">
+        <h1 className="font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">
+          Find your next{" "}
+          <span className="bg-gradient-to-r from-wave-400 to-glow-400 bg-clip-text text-transparent">
+            jam partner
+          </span>
+          .
         </h1>
-        <p className="mt-2 max-w-2xl text-slate-400">
+        <p className="mt-3 max-w-2xl text-slate-400">
           Musicians, by instrument, genre, and city. Build a profile, get
           discovered, and connect with players near you.
         </p>
         {!isAuthenticated && (
-          <div className="mt-4 flex gap-3">
+          <div className="mt-5 flex gap-3">
             <Link to="/register" className="btn-primary">
               Create your profile
             </Link>

@@ -24,6 +24,20 @@ export default {
       },
       fontFamily: {
         sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ["Space Grotesk", "Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+      },
+      boxShadow: {
+        "glow-teal": "0 0 28px -6px rgba(45, 212, 191, 0.40)",
+        "glow-violet": "0 0 28px -6px rgba(139, 92, 246, 0.40)",
+      },
+      keyframes: {
+        equalize: {
+          "0%, 100%": { transform: "scaleY(0.4)" },
+          "50%": { transform: "scaleY(1)" },
+        },
+      },
+      animation: {
+        equalize: "equalize 1.1s ease-in-out infinite",
       },
     },
   },

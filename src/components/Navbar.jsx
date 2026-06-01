@@ -24,7 +24,7 @@ export default function Navbar() {
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link to="/" className="flex items-center gap-2">
           <img src="/wave.svg" alt="" className="h-7 w-7" />
-          <span className="text-lg font-extrabold tracking-tight text-white">
+          <span className="font-display text-lg font-bold tracking-tight text-white">
             frikkin<span className="text-wave-500">wave</span>
           </span>
         </Link>
