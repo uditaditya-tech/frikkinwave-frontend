@@ -27,7 +27,17 @@ export default function ProfileCard({ profile }) {
             {location || "Location not set"}
           </p>
         </div>
-        <OnAir available={profile.is_available} className="shrink-0" />
+        <div className="flex shrink-0 items-center gap-2">
+          {profile.sound_url && (
+            <span
+              className="inline-flex items-center gap-1 rounded-full border border-wave-500/40 px-2 py-0.5 text-[10px] font-semibold text-wave-400"
+              title="Has a track"
+            >
+              ▶ track
+            </span>
+          )}
+          <OnAir available={profile.is_available} />
+        </div>
       </div>
 
       {profile.bio && (

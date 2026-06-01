@@ -18,6 +18,7 @@ const EMPTY_FORM = {
   city: "",
   country: "",
   isAvailable: true,
+  soundUrl: "",
   instruments: [], // [{ instrumentId, proficiency }]
   genres: [], // [id, ...]
 };
@@ -56,6 +57,7 @@ export default function EditProfile() {
           city: profile.city || "",
           country: profile.country || "",
           isAvailable: profile.is_available,
+          soundUrl: profile.sound_url || "",
           instruments: (profile.instruments || []).map((mi) => ({
             instrumentId: mi.instrument.id,
             proficiency: mi.proficiency,
@@ -210,6 +212,19 @@ export default function EditProfile() {
             />
             I'm available to jam / collaborate
           </label>
+          <div>
+            <label className="label">Sound link (optional)</label>
+            <input
+              type="url"
+              className="input"
+              placeholder="SoundCloud / Spotify / YouTube URL"
+              value={form.soundUrl}
+              onChange={(e) => setForm({ ...form, soundUrl: e.target.value })}
+            />
+            <p className="mt-1 text-xs text-slate-500">
+              Paste a track link — it embeds as a player on your profile.
+            </p>
+          </div>
         </div>
 
         {/* Instruments */}

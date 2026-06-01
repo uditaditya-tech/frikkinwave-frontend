@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import Spinner from "../components/Spinner";
 import EqMeter from "../components/EqMeter";
 import OnAir from "../components/OnAir";
+import SoundEmbed from "../components/SoundEmbed";
 import { genreHex } from "../lib/genreColors";
 
 function ContactPanel({ username }) {
@@ -130,6 +131,15 @@ export default function PublicProfile() {
 
         {profile.bio && (
           <p className="mt-4 whitespace-pre-line text-slate-300">{profile.bio}</p>
+        )}
+
+        {profile.sound_url && (
+          <div className="mt-5">
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Listen
+            </h3>
+            <SoundEmbed url={profile.sound_url} />
+          </div>
         )}
 
         {instruments.length > 0 && (

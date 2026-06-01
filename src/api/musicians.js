@@ -42,12 +42,13 @@ export async function getMyProfile() {
 }
 
 // Shape the editor state into the write-serializer payload.
-function toWritePayload({ bio, city, country, isAvailable, instruments, genres }) {
+function toWritePayload({ bio, city, country, isAvailable, soundUrl, instruments, genres }) {
   return {
     bio,
     city,
     country,
     is_available: isAvailable,
+    sound_url: soundUrl,
     // instruments: [{ instrument: <id>, proficiency }]
     instruments: instruments.map((i) => ({
       instrument: i.instrumentId,
