@@ -38,12 +38,22 @@ no GitHub auto-deploy yet, so pushing to `main` does not ship. See
 - **Discover** — browse/filter musician profiles by city, country, instrument,
   genre, and availability. Cursor-paginated ("Load more").
 - **Public profiles** — `/u/:username`, with instruments + proficiency, genres,
-  location, and availability.
+  location, availability, and an **embedded track player** (SoundCloud / Spotify
+  / YouTube) when `sound_url` is set.
 - **Profile editor** — create/edit your own profile: bio, location,
-  availability, instruments (with proficiency), and genres.
+  availability, instruments (with proficiency), genres, and a **sound link**.
 - **Contact requests** — send a request from a profile; manage incoming /
   outgoing; accept / decline. Contact email is revealed to both parties once a
   request is accepted.
+
+## Design system
+
+The UI follows the **"Late-night studio"** direction — dark canvas, teal→violet
+glow, waveform/EQ motifs, glassy cards. The full spec (palette, type, components,
+motion, per-page application) lives in [`DESIGN.md`](DESIGN.md). Signature pieces:
+`EqMeter` (proficiency as a mixer meter), `OnAir` (availability pulse), `Waveform`
+(card footer), `SoundEmbed` (track player), and per-genre accent colors
+(`lib/genreColors.js`). All motion is `prefers-reduced-motion` safe.
 
 ---
 
@@ -158,11 +168,18 @@ src/
 │   └── connections.js
 ├── context/
 │   └── AuthContext.jsx   # session state, sign in/up/out, bootstrap on load
-├── components/     # Navbar, ProfileCard, ProtectedRoute, Spinner
+├── components/     # Navbar, ProfileCard, ProtectedRoute, Spinner,
+│   │               #   EqMeter, OnAir, Waveform, SoundEmbed (design system)
 ├── pages/          # Discover, Login, Register, PublicProfile,
 │   │               #   EditProfile, Requests, NotFound
-├── lib/tokens.js   # localStorage token helpers
+├── lib/
+│   ├── tokens.js       # localStorage token helpers
+│   ├── genreColors.js  # genre → accent color
+│   └── embed.js        # track URL → embed descriptor (YouTube/Spotify/SoundCloud)
 ├── App.jsx         # routes
 ├── main.jsx        # entry (Router + AuthProvider)
 └── index.css       # Tailwind + component classes (.btn, .card, .chip, …)
 ```
+
+See also [`DESIGN.md`](DESIGN.md) (visual system) and [`CLAUDE.md`](CLAUDE.md)
+(fast orientation for a new session).

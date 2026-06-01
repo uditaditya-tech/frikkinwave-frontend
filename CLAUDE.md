@@ -31,6 +31,10 @@ Vite 5 · React 18 · react-router v6 · Tailwind v3 · axios. File map is in
 - `src/pages/*` — Discover (browse/filter), Login, Register, PublicProfile
   (`/u/:username`), EditProfile (create+edit own), Requests (incoming/outgoing), NotFound.
 - `ProtectedRoute` gates `/profile` and `/requests`.
+- **Design system** ("Late-night studio" — see `DESIGN.md`): components `EqMeter`,
+  `OnAir`, `Waveform`, `SoundEmbed`; helpers `lib/genreColors.js` (genre→color) and
+  `lib/embed.js` (track URL → YouTube/Spotify/SoundCloud player). Tokens/classes in
+  `tailwind.config.js` + `index.css`. Motion is `prefers-reduced-motion` safe.
 
 ## Run locally
 
@@ -69,7 +73,8 @@ Auth: `POST /auth/register/`, `POST /auth/token/`, `POST /auth/token/refresh/`,
 `POST /auth/logout/`, `GET /auth/me/`. Musicians: `GET /musicians/instruments/`,
 `GET /musicians/genres/`, `GET /musicians/profiles/` (cursor-paginated, filters:
 city/country/instrument/genre/available), `GET /musicians/profiles/<username>/`,
-`POST /musicians/profile/`, `GET|PATCH /musicians/profile/me/`. Connections:
+`POST /musicians/profile/`, `GET|PATCH /musicians/profile/me/`. Profiles carry an
+optional `sound_url` (SoundCloud/Spotify/YouTube) — embedded via `SoundEmbed`. Connections:
 `POST /connections/requests/`, `GET /connections/requests/?box=incoming|outgoing`
 (cursor-paginated), `GET|.../accept/|.../decline/`.
 
