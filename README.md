@@ -7,6 +7,15 @@ by instrument, genre, and city.
 React SPA (Vite) talking to the Django/DRF backend at
 `https://api.frikkinwave.com`. Deployed on Vercel at **frikkinwave.com**.
 
+> **New to this repo?** Read [`CLAUDE.md`](CLAUDE.md) first — it has the fast
+> orientation (architecture, live-deploy reality, the API contract, and the
+> DNS/CORS gotchas) so you don't have to read the whole tree.
+
+**Live status:** in production at **https://frikkinwave.com** (SSL via Vercel).
+Currently deployed **manually via the Vercel CLI** (`vercel --prod`) — there is
+no GitHub auto-deploy yet, so pushing to `main` does not ship. See
+"[Deploying to Vercel](#deploying-to-vercel)".
+
 ---
 
 ## Stack
@@ -73,25 +82,52 @@ The axios client appends `/api` itself (`src/api/client.js`).
 
 ## Deploying to Vercel
 
-1. Push this repo to GitHub.
-2. In Vercel: **New Project** → import the repo. Framework preset is detected as
-   **Vite** (also pinned in `vercel.json`). Build command `npm run build`,
-   output `dist`.
-3. **Environment Variables** → add `VITE_API_BASE_URL = https://api.frikkinwave.com`
-   (Production, and Preview if you want previews hitting prod).
-4. **Domains** → add `frikkinwave.com` (and `www`). Point the apex/CNAME records
-   as Vercel instructs. (The `api.` subdomain stays on AWS Route 53 → ALB.)
-5. Deploy. `vercel.json` rewrites all paths to `index.html` so client-side
-   routes (`/u/:username`, `/profile`, …) work on hard refresh.
+**How it's deployed today (CLI, manual).** The Vercel project is already created
+and linked (`.vercel/`, git-ignored); deploys are run by hand:
+
+```bash
+vercel --prod        # builds + ships to production, aliases frikkinwave.com
+```
+`VITE_API_BASE_URL` is set as a Production env var in the Vercel project (and is
+inlined at build time — change it ⇒ redeploy). `vercel.json` rewrites all paths
+to `index.html`, so client routes (`/u/:username`, `/profile`, …) survive hard refresh.
+
+**To switch to auto-deploy on push** (optional): in the Vercel dashboard → **Add
+New → Project → Import `uditaditya-tech/frikkinwave-frontend`**. It detects the
+existing project and the Vite preset; thereafter every push to `main` deploys.
+
+### Custom domain (GoDaddy → Vercel)
+
+The domain is registered at **GoDaddy** (`ns*.domaincontrol.com`). In Vercel add
+`frikkinwave.com` + `www.frikkinwave.com` to the project, then set these records
+in GoDaddy → DNS:
+
+| Type | Name | Data |
+|---|---|---|
+| `A` | `@` | `76.76.21.21` |
+| `CNAME` | `www` | `cname.vercel-dns.com` |
+
+- A domain with **no apex `A` record** serves GoDaddy's free "parked" lander —
+  adding the `A` record removes it.
+- **Leave the four `api` `NS` records (`*.awsdns-*`) alone** — `api.frikkinwave.com`
+  is delegated to AWS Route 53 → the backend ALB.
+- After changes, your *own* machine may cache the old parked page until TTL (~1h)
+  clears; verify the real state with
+  `curl --resolve frikkinwave.com:443:76.76.21.21 https://frikkinwave.com/`.
 
 ### CORS (backend side)
 
-The backend must allow this origin. It already reads `CORS_ALLOWED_ORIGINS`
-from env — ensure the production value includes:
+The backend allowlist (`CORS_ALLOWED_ORIGINS`) must include this origin — in
+production it's set to:
 
 ```
 CORS_ALLOWED_ORIGINS=https://frikkinwave.com,https://www.frikkinwave.com
 ```
+
+⚠️ The `*.vercel.app` deployment URL is **not** in the allowlist, so its API calls
+are CORS-blocked (the app loads but shows no data). Use the custom domain — or, to
+allow `*.vercel.app`/preview URLs, widen the backend `cors_allowed_origins` tfvar
+and redeploy ECS.
 
 ---
 
