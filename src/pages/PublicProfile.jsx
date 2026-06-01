@@ -1,0 +1,186 @@
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { getPublicProfile } from "../api/musicians";
+import { sendRequest } from "../api/connections";
+import { apiErrorMessage } from "../api/client";
+import { useAuth } from "../context/AuthContext";
+import Spinner from "../components/Spinner";
+
+function ContactPanel({ username }) {
+  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState({ type: "idle", text: "" });
+  const [sending, setSending] = useState(false);
+
+  async function handleSend(e) {
+    e.preventDefault();
+    setSending(true);
+    setStatus({ type: "idle", text: "" });
+    try {
+      await sendRequest({ recipientUsername: username, message });
+      setStatus({
+        type: "ok",
+        text: "Request sent! You'll see their contact details once they accept.",
+      });
+      setMessage("");
+    } catch (err) {
+      setStatus({ type: "error", text: apiErrorMessage(err, "Couldn't send request.") });
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSend} className="card mt-6">
+      <h2 className="text-lg font-semibold text-white">Send a contact request</h2>
+      <p className="mt-1 text-sm text-slate-400">
+        Introduce yourself. If they accept, you'll both see each other's email.
+      </p>
+      <textarea
+        className="input mt-3 min-h-[90px] resize-y"
+        placeholder="Hey! I play bass and I'm looking to jam on weekends…"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+      />
+      {status.text && (
+        <p
+          className={`mt-3 rounded-lg px-3 py-2 text-sm ${
+            status.type === "ok"
+              ? "border border-wave-500/30 bg-wave-500/10 text-wave-300"
+              : "border border-rose-500/30 bg-rose-500/10 text-rose-300"
+          }`}
+        >
+          {status.text}
+        </p>
+      )}
+      <button type="submit" disabled={sending} className="btn-primary mt-4">
+        {sending ? "Sending…" : "Send request"}
+      </button>
+    </form>
+  );
+}
+
+export default function PublicProfile() {
+  const { username } = useParams();
+  const { user, isAuthenticated } = useAuth();
+
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError("");
+    getPublicProfile(username)
+      .then((data) => {
+        if (!cancelled) setProfile(data);
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setError(
+            e?.response?.status === 404
+              ? "No musician found with that handle."
+              : apiErrorMessage(e, "Couldn't load this profile.")
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [username]);
+
+  if (loading) return <Spinner label="Loading profile…" />;
+
+  if (error) {
+    return (
+      <div className="card text-center">
+        <p className="text-slate-300">{error}</p>
+        <Link to="/" className="btn-ghost mt-4">
+          Back to discover
+        </Link>
+      </div>
+    );
+  }
+
+  const instruments = profile.instruments || [];
+  const genres = profile.genres || [];
+  const location = [profile.city, profile.country].filter(Boolean).join(", ");
+  const isSelf = user?.username && user.username === profile.username;
+
+  return (
+    <div className="mx-auto max-w-2xl">
+      <div className="card">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-white">@{profile.username}</h1>
+            <p className="mt-1 text-slate-400">{location || "Location not set"}</p>
+          </div>
+          <span
+            className={`chip ${
+              profile.is_available
+                ? "border-wave-500/40 text-wave-400"
+                : "text-slate-500"
+            }`}
+          >
+            {profile.is_available ? "Available to jam" : "Not available"}
+          </span>
+        </div>
+
+        {profile.bio && (
+          <p className="mt-4 whitespace-pre-line text-slate-300">{profile.bio}</p>
+        )}
+
+        {instruments.length > 0 && (
+          <div className="mt-5">
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Instruments
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {instruments.map((mi) => (
+                <span key={mi.instrument.id} className="chip border-glow-500/40 text-glow-400">
+                  {mi.instrument.name}
+                  <span className="text-slate-500">· {mi.proficiency}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {genres.length > 0 && (
+          <div className="mt-4">
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Genres
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {genres.map((g) => (
+                <span key={g.id} className="chip">
+                  {g.name}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {isSelf && (
+          <Link to="/profile" className="btn-ghost mt-6">
+            Edit my profile
+          </Link>
+        )}
+      </div>
+
+      {/* Contact: only for other authenticated users. */}
+      {isAuthenticated && !isSelf && <ContactPanel username={profile.username} />}
+      {!isAuthenticated && (
+        <p className="mt-6 text-center text-sm text-slate-500">
+          <Link to="/login" className="text-wave-400 hover:underline">
+            Log in
+          </Link>{" "}
+          to send a contact request.
+        </p>
+      )}
+    </div>
+  );
+}
