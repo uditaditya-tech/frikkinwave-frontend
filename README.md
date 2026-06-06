@@ -46,6 +46,22 @@ no GitHub auto-deploy yet, so pushing to `main` does not ship. See
   outgoing; accept / decline. Contact email is revealed to both parties once a
   request is accepted.
 
+## What it covers (Phase 2 — AI matching)
+
+The backend's AI layer is fully surfaced in the UI. Each feature **degrades
+quietly** when AI is unavailable server-side (e.g. no `OPENAI_API_KEY`):
+
+- **Semantic search** — a natural-language search bar on Discover ("a jazz
+  drummer in Berlin into 70s fusion"). Flips the feed into a search mode showing
+  cosine-ranked matches, each card carrying a **% match** badge. Empty-state when
+  there's nothing to match (no error). Public (no login required).
+- **Compatibility blurb** — a "Why you might click" gpt-4o-mini blurb on public
+  profiles, shown to logged-in viewers. Hints to create a profile if you have
+  none (400); hides itself if AI is down (503).
+- **Profile coach** — a "Profile coach" card in the editor: a completeness meter
+  (0–100), rule-based per-field suggestions, and an LLM tip. Auto-refreshes after
+  every save, so the score climbs as you fill the profile in.
+
 ## Design system
 
 The UI follows the **"Late-night studio"** direction — dark canvas, teal→violet
@@ -154,6 +170,15 @@ backend repo). They must be deployed for the profile editor and identity to work
 
 The shared profile read serializer also now returns `username` on every profile
 (needed to link discovery cards → public profiles → contact requests).
+
+The Phase 2 AI features add three more (see the backend repo, Phase 2). They
+work without these deployed — the UI just degrades to its non-AI state:
+
+| Method | URL | Drives |
+|---|---|---|
+| `GET` | `/api/musicians/search/` | Semantic search on Discover (`?q=`, `?available=`) |
+| `GET` | `/api/musicians/compatibility/<username>/` | "Why you might click" blurb (Bearer) |
+| `GET` | `/api/musicians/profile/coach/` | Profile-coach card in the editor (Bearer) |
 
 ---
 

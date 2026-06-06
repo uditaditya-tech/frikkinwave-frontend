@@ -28,9 +28,15 @@ Vite 5 · React 18 · react-router v6 · Tailwind v3 · axios. File map is in
   the **JWT refresh-on-401 interceptor** + `apiErrorMessage()` (DRF error formatter).
 - `src/context/AuthContext.jsx` — session state (sign in/up/out, bootstrap from
   stored tokens, `/auth/me` resolution). Tokens live in `localStorage` (`src/lib/tokens.js`).
-- `src/pages/*` — Discover (browse/filter), Login, Register, PublicProfile
-  (`/u/:username`), EditProfile (create+edit own), Requests (incoming/outgoing), NotFound.
+- `src/pages/*` — Discover (browse/filter **+ semantic search**), Login, Register,
+  PublicProfile (`/u/:username`, **+ AI compatibility blurb**), EditProfile
+  (create+edit own, **+ AI profile coach**), Requests (incoming/outgoing), NotFound.
 - `ProtectedRoute` gates `/profile` and `/requests`.
+- **Phase 2 AI features** (all surface backend endpoints; each degrades quietly
+  when AI is unavailable server-side): semantic NL search on Discover, a
+  "Why you might click" compatibility blurb on PublicProfile, and a completeness
+  "Profile coach" in EditProfile. No new design-system components — reuses existing
+  styling + a `glow`-accented card.
 - **Design system** ("Late-night studio" — see `DESIGN.md`): components `EqMeter`,
   `OnAir`, `Waveform`, `SoundEmbed`; helpers `lib/genreColors.js` (genre→color) and
   `lib/embed.js` (track URL → YouTube/Spotify/SoundCloud player). Tokens/classes in
@@ -74,7 +80,11 @@ Auth: `POST /auth/register/`, `POST /auth/token/`, `POST /auth/token/refresh/`,
 `GET /musicians/genres/`, `GET /musicians/profiles/` (cursor-paginated, filters:
 city/country/instrument/genre/available), `GET /musicians/profiles/<username>/`,
 `POST /musicians/profile/`, `GET|PATCH /musicians/profile/me/`. Profiles carry an
-optional `sound_url` (SoundCloud/Spotify/YouTube) — embedded via `SoundEmbed`. Connections:
+optional `sound_url` (SoundCloud/Spotify/YouTube) — embedded via `SoundEmbed`.
+**Phase 2 AI:** `GET /musicians/search/?q=&available=` (semantic search, public,
+returns `{query, results}` w/ a `similarity` per result), `GET /musicians/compatibility/<username>/`
+(Bearer; `{with, blurb}`; 400 no-profile / 503 AI-down), `GET /musicians/profile/coach/`
+(Bearer; `{completeness, suggestions, tip}`; `tip` null when no key). Connections:
 `POST /connections/requests/`, `GET /connections/requests/?box=incoming|outgoing`
 (cursor-paginated), `GET|.../accept/|.../decline/`.
 
