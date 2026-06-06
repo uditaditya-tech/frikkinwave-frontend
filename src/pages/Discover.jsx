@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { listGenres, listInstruments, listProfiles } from "../api/musicians";
+import {
+  listGenres,
+  listInstruments,
+  listProfiles,
+  searchProfiles,
+} from "../api/musicians";
 import { apiErrorMessage } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import ProfileCard from "../components/ProfileCard";
@@ -29,6 +34,15 @@ export default function Discover() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
+
+  // Semantic search is a separate mode from the structured-filter browse feed.
+  // `query` is the live input; `searched` is the query whose results are shown.
+  const [query, setQuery] = useState("");
+  const [searched, setSearched] = useState("");
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
+  const searchMode = searched !== "";
 
   // Load lookup tables once for the filter dropdowns.
   useEffect(() => {
@@ -86,6 +100,30 @@ export default function Discover() {
     }
   }
 
+  async function runSearch(e) {
+    e.preventDefault();
+    const q = query.trim();
+    if (!q) return;
+    setSearching(true);
+    setSearchError("");
+    try {
+      const data = await searchProfiles({ q, available: applied.available });
+      setResults(data.results || []);
+      setSearched(q);
+    } catch (err) {
+      setSearchError(apiErrorMessage(err, "Search is unavailable right now."));
+    } finally {
+      setSearching(false);
+    }
+  }
+
+  function clearSearch() {
+    setQuery("");
+    setSearched("");
+    setResults([]);
+    setSearchError("");
+  }
+
   function applyFilters(e) {
     e.preventDefault();
     setApplied(filters);
@@ -121,9 +159,28 @@ export default function Discover() {
             </Link>
           </div>
         )}
+
+        {/* Semantic search — describe who you're after in plain language. */}
+        <form onSubmit={runSearch} className="relative mt-6 flex gap-2">
+          <input
+            className="input flex-1"
+            placeholder="Describe who you're looking for — e.g. “a jazz drummer in Berlin into 70s fusion”"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <button type="submit" className="btn-primary" disabled={searching}>
+            {searching ? "Searching…" : "Search"}
+          </button>
+          {searchMode && (
+            <button type="button" onClick={clearSearch} className="btn-ghost">
+              Clear
+            </button>
+          )}
+        </form>
       </section>
 
-      {/* Filters */}
+      {/* Filters — hidden while a semantic search is active. */}
+      {!searchMode && (
       <form
         onSubmit={applyFilters}
         className="card mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5"
@@ -200,7 +257,41 @@ export default function Discover() {
           </button>
         </div>
       </form>
+      )}
 
+      {/* Search results take over the feed when a query is active. */}
+      {searchMode ? (
+        <>
+          {searchError && (
+            <p className="mb-4 rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-sm text-rose-300">
+              {searchError}
+            </p>
+          )}
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <p className="text-sm text-slate-400">
+              Semantic matches for{" "}
+              <span className="text-slate-200">“{searched}”</span>
+            </p>
+            <button type="button" onClick={clearSearch} className="btn-ghost">
+              Back to browse
+            </button>
+          </div>
+          {searching ? (
+            <Spinner label="Listening…" />
+          ) : results.length === 0 ? (
+            <div className="card text-center text-slate-400">
+              No semantic matches — try rephrasing, or clear the search to browse.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {results.map((p) => (
+                <ProfileCard key={p.id} profile={p} />
+              ))}
+            </div>
+          )}
+        </>
+      ) : (
+      <>
       {/* Results */}
       {error && (
         <p className="mb-4 rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-sm text-rose-300">
@@ -233,6 +324,8 @@ export default function Discover() {
             </div>
           )}
         </>
+      )}
+      </>
       )}
     </div>
   );

@@ -28,6 +28,14 @@ export default function ProfileCard({ profile }) {
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          {profile.similarity != null && (
+            <span
+              className="inline-flex items-center gap-1 rounded-full border border-glow-500/40 bg-glow-500/10 px-2 py-0.5 text-[10px] font-semibold text-glow-400"
+              title="Semantic match score"
+            >
+              {Math.round(profile.similarity * 100)}% match
+            </span>
+          )}
           {profile.sound_url && (
             <span
               className="inline-flex items-center gap-1 rounded-full border border-wave-500/40 px-2 py-0.5 text-[10px] font-semibold text-wave-400"
