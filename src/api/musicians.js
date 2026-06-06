@@ -47,10 +47,29 @@ export async function getPublicProfile(username) {
   return res.data;
 }
 
+// GET /api/musicians/compatibility/<username>/ (Bearer) — cached gpt-4o-mini
+// "why you might click" blurb between the current user and <username>.
+// Returns { with, blurb }. 400 if the viewer has no profile or targets
+// themselves; 404 if unknown; 503 if AI is unavailable.
+export async function getCompatibility(username) {
+  const res = await api.get(
+    `/musicians/compatibility/${encodeURIComponent(username)}/`
+  );
+  return res.data;
+}
+
 // GET /api/musicians/profile/me/
 export async function getMyProfile() {
   const res = await api.get("/musicians/profile/me/");
   return res.data;
+}
+
+// GET /api/musicians/profile/coach/ (Bearer) — completeness score (0–100),
+// rule-based per-field suggestions, and an LLM `tip` (null if AI is
+// unavailable). 400 if the user has no profile yet.
+export async function getProfileCoach() {
+  const res = await api.get("/musicians/profile/coach/");
+  return res.data; // { completeness, suggestions: [{field, message}], tip }
 }
 
 // Shape the editor state into the write-serializer payload.

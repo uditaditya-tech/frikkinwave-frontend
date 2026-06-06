@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getPublicProfile } from "../api/musicians";
+import { getCompatibility, getPublicProfile } from "../api/musicians";
 import { sendRequest } from "../api/connections";
 import { apiErrorMessage } from "../api/client";
 import { useAuth } from "../context/AuthContext";
@@ -9,6 +9,60 @@ import EqMeter from "../components/EqMeter";
 import OnAir from "../components/OnAir";
 import SoundEmbed from "../components/SoundEmbed";
 import { genreHex } from "../lib/genreColors";
+
+// "Why you might click" — an AI compatibility blurb between the viewer and this
+// profile. Degrades quietly: renders nothing on 503 (AI unavailable) or any
+// unexpected error; shows an actionable hint if the viewer has no profile yet.
+function CompatibilityPanel({ username }) {
+  const [state, setState] = useState({ status: "loading", blurb: "" });
+
+  useEffect(() => {
+    let cancelled = false;
+    setState({ status: "loading", blurb: "" });
+    getCompatibility(username)
+      .then((data) => {
+        if (!cancelled) setState({ status: "ok", blurb: data.blurb });
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        // 400 = viewer has no profile yet (actionable); everything else
+        // (503 AI down, etc.) degrades to nothing.
+        const code = err?.response?.status;
+        setState({ status: code === 400 ? "needs-profile" : "hidden", blurb: "" });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [username]);
+
+  if (state.status === "hidden") return null;
+
+  return (
+    <div className="card mt-6 border-glow-500/30 bg-glow-500/5">
+      <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
+        <span className="text-glow-400">✦</span> Why you might click
+      </h2>
+      {state.status === "loading" && (
+        <p className="mt-2 animate-pulse text-sm text-slate-500">
+          Reading the room…
+        </p>
+      )}
+      {state.status === "needs-profile" && (
+        <p className="mt-2 text-sm text-slate-400">
+          <Link to="/profile" className="text-glow-400 hover:underline">
+            Create your profile
+          </Link>{" "}
+          to see how you two might click.
+        </p>
+      )}
+      {state.status === "ok" && (
+        <p className="mt-2 whitespace-pre-line text-sm text-slate-300">
+          {state.blurb}
+        </p>
+      )}
+    </div>
+  );
+}
 
 function ContactPanel({ username }) {
   const [message, setMessage] = useState("");
@@ -191,8 +245,13 @@ export default function PublicProfile() {
         )}
       </div>
 
-      {/* Contact: only for other authenticated users. */}
-      {isAuthenticated && !isSelf && <ContactPanel username={profile.username} />}
+      {/* AI compatibility + contact: only for other authenticated users. */}
+      {isAuthenticated && !isSelf && (
+        <>
+          <CompatibilityPanel username={profile.username} />
+          <ContactPanel username={profile.username} />
+        </>
+      )}
       {!isAuthenticated && (
         <p className="mt-6 text-center text-sm text-slate-500">
           <Link to="/login" className="text-wave-400 hover:underline">

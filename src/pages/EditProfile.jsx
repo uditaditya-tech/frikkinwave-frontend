@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import {
   createMyProfile,
   getMyProfile,
+  getProfileCoach,
   listGenres,
   listInstruments,
   updateMyProfile,
@@ -35,6 +36,7 @@ export default function EditProfile() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [savedAt, setSavedAt] = useState(null);
+  const [coach, setCoach] = useState(null); // { completeness, suggestions, tip }
 
   useEffect(() => {
     let cancelled = false;
@@ -82,6 +84,26 @@ export default function EditProfile() {
       cancelled = true;
     };
   }, []);
+
+  // Fetch profile coaching once a profile exists; refresh after every save.
+  // Degrades quietly — any failure just hides the panel.
+  useEffect(() => {
+    if (isNew) {
+      setCoach(null);
+      return;
+    }
+    let cancelled = false;
+    getProfileCoach()
+      .then((data) => {
+        if (!cancelled) setCoach(data);
+      })
+      .catch(() => {
+        if (!cancelled) setCoach(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isNew, savedAt]);
 
   function addInstrument() {
     // Default to the first instrument not already chosen.
@@ -169,6 +191,51 @@ export default function EditProfile() {
           )}
         </div>
       </div>
+
+      {coach && (
+        <div className="card mb-6 border-glow-500/30 bg-glow-500/5">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
+              <span className="text-glow-400">✦</span> Profile coach
+            </h2>
+            <span className="font-display text-sm font-semibold text-glow-300">
+              {coach.completeness}%
+            </span>
+          </div>
+
+          {/* Completeness meter */}
+          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-ink-800">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-wave-500 to-glow-500 transition-all duration-500"
+              style={{ width: `${coach.completeness}%` }}
+            />
+          </div>
+
+          {coach.suggestions.length > 0 ? (
+            <ul className="mt-4 space-y-1.5">
+              {coach.suggestions.map((s) => (
+                <li
+                  key={s.field}
+                  className="flex items-start gap-2 text-sm text-slate-300"
+                >
+                  <span className="mt-0.5 text-glow-400">→</span>
+                  {s.message}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm text-wave-300">
+              Your profile looks complete. Nice.
+            </p>
+          )}
+
+          {coach.tip && (
+            <p className="mt-4 rounded-lg border border-glow-500/20 bg-ink-900/60 px-3 py-2 text-sm italic text-slate-300">
+              {coach.tip}
+            </p>
+          )}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="card space-y-4">
