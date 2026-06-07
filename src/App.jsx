@@ -11,6 +11,10 @@ import Board from "./pages/Board";
 import ListingDetail from "./pages/ListingDetail";
 import PostListing from "./pages/PostListing";
 import Applications from "./pages/Applications";
+import Bands from "./pages/Bands";
+import BandDetail from "./pages/BandDetail";
+import EditBand from "./pages/EditBand";
+import BandInvites from "./pages/BandInvites";
 import NotFound from "./pages/NotFound";
 
 export default function App() {
@@ -46,6 +50,32 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Applications />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/bands" element={<Bands />} />
+          <Route
+            path="/bands/new"
+            element={
+              <ProtectedRoute>
+                <EditBand />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bands/:slug/edit"
+            element={
+              <ProtectedRoute>
+                <EditBand />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/bands/:slug" element={<BandDetail />} />
+          <Route
+            path="/band-invites"
+            element={
+              <ProtectedRoute>
+                <BandInvites />
               </ProtectedRoute>
             }
           />
