@@ -92,6 +92,19 @@ this is the first):
   with the owner's contact email **revealed once accepted**. (Owners invite from
   the band page; only the invited member resolves the invite.)
 
+## What it covers (Phase 4 — Block B: session-musician marketplace)
+
+Hire-intent only (no payments), surfaced across profiles + a hire flow:
+
+- **"Open to session work"** — a profile flag + optional rate, set in the editor.
+  Shown as a badge on the public profile, and exposed as a **Session work** filter
+  on Discover (`?open_to_session=true`).
+- **Hire for a session** — on the profile of a musician open to session work,
+  signed-in viewers get a hire-request form (message, proposed date, rate offer).
+- **Engagements** (`/engagements`) — incoming/outgoing inbox: the hired musician
+  accepts/declines; **contact email is revealed on accept**; either party can then
+  **mark the engagement complete** (contact stays revealed).
+
 ## Design system
 
 The UI follows the **"Late-night studio"** direction — dark canvas, teal→violet
@@ -235,6 +248,20 @@ Phase 4 Block A (bands) is driven by the bands app:
 | `GET` | `/api/bands/memberships/` | Your received invites (Bearer; no box param) |
 | `POST` | `/api/bands/memberships/<id>/accept\|decline/` | Invited member resolves (Bearer) |
 
+Phase 4 Block B (session marketplace) adds an `open_to_session` profile filter
+plus the engagements app:
+
+| Method | URL | Drives |
+|---|---|---|
+| `GET` | `/api/musicians/profiles/?open_to_session=true` | Discover "Session work" filter |
+| `POST` | `/api/engagements/` | Send a hire request by username (Bearer) |
+| `GET` | `/api/engagements/?box=incoming\|outgoing` | Engagements inbox (Bearer) |
+| `POST` | `/api/engagements/<id>/accept\|decline/` | Hired musician resolves (Bearer) |
+| `POST` | `/api/engagements/<id>/complete/` | Either party marks accepted → completed (Bearer) |
+
+The profile read/write serializers also now carry `is_open_to_session_work` and
+`session_rate` (set in the editor, shown on the public profile).
+
 ---
 
 ## Project structure
@@ -247,14 +274,15 @@ src/
 │   ├── musicians.js
 │   ├── connections.js
 │   ├── listings.js
-│   └── bands.js
+│   ├── bands.js
+│   └── engagements.js
 ├── context/
 │   └── AuthContext.jsx   # session state, sign in/up/out, bootstrap on load
 ├── components/     # Navbar, ProfileCard, ListingCard, BandCard, ProtectedRoute,
 │   │               #   Spinner, EqMeter, OnAir, Waveform, SoundEmbed (design system)
 ├── pages/          # Discover, Login, Register, PublicProfile, EditProfile,
 │   │               #   Requests, Board, ListingDetail, PostListing, Applications,
-│   │               #   Bands, BandDetail, EditBand, BandInvites, NotFound
+│   │               #   Bands, BandDetail, EditBand, BandInvites, Engagements, NotFound
 ├── lib/
 │   ├── tokens.js       # localStorage token helpers
 │   ├── genreColors.js  # genre → accent color

@@ -15,6 +15,7 @@ import Bands from "./pages/Bands";
 import BandDetail from "./pages/BandDetail";
 import EditBand from "./pages/EditBand";
 import BandInvites from "./pages/BandInvites";
+import Engagements from "./pages/Engagements";
 import NotFound from "./pages/NotFound";
 
 export default function App() {
@@ -76,6 +77,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <BandInvites />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/engagements"
+            element={
+              <ProtectedRoute>
+                <Engagements />
               </ProtectedRoute>
             }
           />

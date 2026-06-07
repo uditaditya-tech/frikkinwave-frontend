@@ -36,11 +36,11 @@ Vite 5 · React 18 · react-router v6 · Tailwind v3 · axios. File map is in
   `/board/:id/edit`, one form), Applications (`/applications`, incoming/outgoing),
   the **Phase 4 Block A bands**: Bands (`/bands`, browse/filter), BandDetail
   (`/bands/:slug`, roster + owner controls + invite), EditBand (`/bands/new` +
-  `/bands/:slug/edit`), BandInvites (`/band-invites`, received invites), and
-  NotFound.
+  `/bands/:slug/edit`), BandInvites (`/band-invites`, received invites), the
+  **Block B** Engagements (`/engagements`, session-work hire inbox), and NotFound.
 - `ProtectedRoute` gates `/profile`, `/requests`, `/board/new`, `/board/:id/edit`,
-  `/applications`, `/bands/new`, `/bands/:slug/edit`, and `/band-invites`. `/board`,
-  `/board/:id`, `/bands`, and `/bands/:slug` are public.
+  `/applications`, `/bands/new`, `/bands/:slug/edit`, `/band-invites`, and
+  `/engagements`. `/board`, `/board/:id`, `/bands`, and `/bands/:slug` are public.
 - **Phase 2 AI features** (all surface backend endpoints; each degrades quietly
   when AI is unavailable server-side): semantic NL search on Discover, a
   "Why you might click" compatibility blurb on PublicProfile, and a completeness
@@ -53,7 +53,13 @@ Vite 5 · React 18 · react-router v6 · Tailwind v3 · axios. File map is in
   by **slug** (not id), with an accepted-members roster + an owner invite-by-username
   flow. `/bands/memberships/` lists only invites where you're the *invited member*
   (no box param) — owners invite from the band page and don't manage invites in a
-  list. Phase 4 Blocks B (session marketplace) + C (venues) are not yet on the frontend.
+  list.
+- **Phase 4 — Block B session marketplace** (`src/api/engagements.js`): a profile
+  `is_open_to_session_work` + `session_rate` (wired through `musicians.js`,
+  EditProfile, PublicProfile, and a Discover `open_to_session` filter) plus the
+  `EngagementRequest` hire flow. Engagements add a 4th status `completed` and a
+  `complete` action either party can take from `accepted` (hire-intent only, no
+  payments). Phase 4 Block C (venues) is not yet on the frontend.
 - **Design system** ("Late-night studio" — see `DESIGN.md`): components `EqMeter`,
   `OnAir`, `Waveform`, `SoundEmbed`; helpers `lib/genreColors.js` (genre→color) and
   `lib/embed.js` (track URL → YouTube/Spotify/SoundCloud player). Tokens/classes in
@@ -120,6 +126,15 @@ carries `owner_username` + `members` accepted roster `[{member_username, role}]`
 /bands/memberships/` (Bearer; your received invites — read carries `band_slug`,
 `band_name`, `role`, `status`, `contact_email` revealed only when `accepted`),
 `POST /bands/memberships/<id>/accept|decline/` (Bearer, invited member only).
+**Phase 4 Block B engagements:** profiles gain `is_open_to_session_work` +
+`session_rate` (read+write) and a `?open_to_session=true` filter on
+`/musicians/profiles/`. `POST /engagements/` {musician_username, message?,
+proposed_date?, rate_offer?} (Bearer), `GET /engagements/?box=incoming|outgoing`
+(Bearer, cursor-paginated; read carries `requester_username`, `musician_username`,
+`proposed_date`, `rate_offer`, `status` ∈ pending/accepted/declined/completed,
+`contact_email` revealed when accepted **or** completed), `POST
+/engagements/<id>/accept|decline/` (Bearer, hired musician only), `POST
+/engagements/<id>/complete/` (Bearer, either party, only from accepted).
 
 > `/auth/me/`, `/musicians/instruments/`, `/musicians/genres/`, and the `username`
 > field on profile responses were **added to the backend to support this client**

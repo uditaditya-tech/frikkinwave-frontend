@@ -20,6 +20,8 @@ const EMPTY_FORM = {
   country: "",
   isAvailable: true,
   soundUrl: "",
+  isOpenToSessionWork: false,
+  sessionRate: "",
   instruments: [], // [{ instrumentId, proficiency }]
   genres: [], // [id, ...]
 };
@@ -60,6 +62,8 @@ export default function EditProfile() {
           country: profile.country || "",
           isAvailable: profile.is_available,
           soundUrl: profile.sound_url || "",
+          isOpenToSessionWork: profile.is_open_to_session_work || false,
+          sessionRate: profile.session_rate || "",
           instruments: (profile.instruments || []).map((mi) => ({
             instrumentId: mi.instrument.id,
             proficiency: mi.proficiency,
@@ -291,6 +295,36 @@ export default function EditProfile() {
             <p className="mt-1 text-xs text-slate-500">
               Paste a track link — it embeds as a player on your profile.
             </p>
+          </div>
+          <div className="rounded-lg border border-ink-700 bg-ink-900/40 p-3">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-300">
+              <input
+                type="checkbox"
+                className="accent-glow-500"
+                checked={form.isOpenToSessionWork}
+                onChange={(e) =>
+                  setForm({ ...form, isOpenToSessionWork: e.target.checked })
+                }
+              />
+              I'm open to paid session work
+            </label>
+            {form.isOpenToSessionWork && (
+              <div className="mt-3">
+                <label className="label">Session rate (optional)</label>
+                <input
+                  className="input"
+                  maxLength={200}
+                  placeholder="e.g. ₹5000 per session"
+                  value={form.sessionRate}
+                  onChange={(e) =>
+                    setForm({ ...form, sessionRate: e.target.value })
+                  }
+                />
+                <p className="mt-1 text-xs text-slate-500">
+                  Shows on your profile so people can hire you for sessions.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

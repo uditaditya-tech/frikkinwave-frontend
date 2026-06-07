@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getCompatibility, getPublicProfile } from "../api/musicians";
 import { sendRequest } from "../api/connections";
+import { sendEngagement } from "../api/engagements";
 import { apiErrorMessage } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import Spinner from "../components/Spinner";
@@ -117,6 +118,94 @@ function ContactPanel({ username }) {
   );
 }
 
+// Hire-for-a-session form — shown for musicians open to session work. Sends an
+// EngagementRequest; on accept the musician's contact is revealed under Engagements.
+function HirePanel({ username, rate }) {
+  const [form, setForm] = useState({ message: "", proposedDate: "", rateOffer: "" });
+  const [status, setStatus] = useState({ type: "idle", text: "" });
+  const [sending, setSending] = useState(false);
+
+  function set(key, value) {
+    setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  async function handleSend(e) {
+    e.preventDefault();
+    setSending(true);
+    setStatus({ type: "idle", text: "" });
+    try {
+      await sendEngagement({
+        musicianUsername: username,
+        message: form.message,
+        proposedDate: form.proposedDate,
+        rateOffer: form.rateOffer,
+      });
+      setStatus({
+        type: "ok",
+        text: "Hire request sent. You'll see their contact once they accept.",
+      });
+      setForm({ message: "", proposedDate: "", rateOffer: "" });
+    } catch (err) {
+      setStatus({ type: "error", text: apiErrorMessage(err, "Couldn't send hire request.") });
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSend} className="card mt-6 border-glow-500/30 bg-glow-500/5">
+      <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
+        <span className="text-glow-400">✦</span> Hire for a session
+      </h2>
+      <p className="mt-1 text-sm text-slate-400">
+        Open to paid session work{rate ? ` · ${rate}` : ""}. Send the details — if
+        they accept, you'll both see each other's email.
+      </p>
+      <textarea
+        className="input mt-3 min-h-[80px] resize-y"
+        placeholder="What's the session — when, where, what you need…"
+        value={form.message}
+        onChange={(e) => set("message", e.target.value)}
+      />
+      <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <div>
+          <label className="label">Proposed date (optional)</label>
+          <input
+            type="date"
+            className="input"
+            value={form.proposedDate}
+            onChange={(e) => set("proposedDate", e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="label">Your offer (optional)</label>
+          <input
+            className="input"
+            maxLength={200}
+            placeholder="e.g. ₹5000"
+            value={form.rateOffer}
+            onChange={(e) => set("rateOffer", e.target.value)}
+          />
+        </div>
+      </div>
+      {status.text && (
+        <p
+          className={`mt-3 rounded-lg px-3 py-2 text-sm ${
+            status.type === "ok"
+              ? "border border-wave-500/30 bg-wave-500/10 text-wave-300"
+              : "border border-rose-500/30 bg-rose-500/10 text-rose-300"
+          }`}
+        >
+          {status.text}
+        </p>
+      )}
+      <button type="submit" disabled={sending} className="btn-primary mt-4">
+        {sending ? "Sending…" : "Send hire request"}
+      </button>
+    </form>
+  );
+}
+
 export default function PublicProfile() {
   const { username } = useParams();
   const { user, isAuthenticated } = useAuth();
@@ -182,6 +271,15 @@ export default function PublicProfile() {
             className="shrink-0"
           />
         </div>
+
+        {profile.is_open_to_session_work && (
+          <div className="mt-3">
+            <span className="chip border-glow-500/40 text-glow-400">
+              ✦ Open to session work
+              {profile.session_rate ? ` · ${profile.session_rate}` : ""}
+            </span>
+          </div>
+        )}
 
         {profile.bio && (
           <p className="mt-4 whitespace-pre-line text-slate-300">{profile.bio}</p>
@@ -249,6 +347,9 @@ export default function PublicProfile() {
       {isAuthenticated && !isSelf && (
         <>
           <CompatibilityPanel username={profile.username} />
+          {profile.is_open_to_session_work && (
+            <HirePanel username={profile.username} rate={profile.session_rate} />
+          )}
           <ContactPanel username={profile.username} />
         </>
       )}
