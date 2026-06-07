@@ -30,13 +30,21 @@ Vite 5 · React 18 · react-router v6 · Tailwind v3 · axios. File map is in
   stored tokens, `/auth/me` resolution). Tokens live in `localStorage` (`src/lib/tokens.js`).
 - `src/pages/*` — Discover (browse/filter **+ semantic search**), Login, Register,
   PublicProfile (`/u/:username`, **+ AI compatibility blurb**), EditProfile
-  (create+edit own, **+ AI profile coach**), Requests (incoming/outgoing), NotFound.
-- `ProtectedRoute` gates `/profile` and `/requests`.
+  (create+edit own, **+ AI profile coach**), Requests (incoming/outgoing), and the
+  **Phase 3 board**: Board (`/board`, browse/filter listings), ListingDetail
+  (`/board/:id`, apply or author controls), PostListing (`/board/new` +
+  `/board/:id/edit`, one form), Applications (`/applications`, incoming/outgoing),
+  NotFound.
+- `ProtectedRoute` gates `/profile`, `/requests`, `/board/new`, `/board/:id/edit`,
+  and `/applications`. `/board` and `/board/:id` are public.
 - **Phase 2 AI features** (all surface backend endpoints; each degrades quietly
   when AI is unavailable server-side): semantic NL search on Discover, a
   "Why you might click" compatibility blurb on PublicProfile, and a completeness
   "Profile coach" in EditProfile. No new design-system components — reuses existing
-  styling + a `glow`-accented card.
+  styling + a glow-accented card (`border-glow-500/30 bg-glow-500/5`).
+- **Phase 3 — gig & audition board** (`src/api/listings.js`, `ListingCard`): the
+  listings board + applications. Listings are colour-coded by type; applications
+  reuse the Requests incoming/outgoing + accept/decline + reveal-on-accept pattern.
 - **Design system** ("Late-night studio" — see `DESIGN.md`): components `EqMeter`,
   `OnAir`, `Waveform`, `SoundEmbed`; helpers `lib/genreColors.js` (genre→color) and
   `lib/embed.js` (track URL → YouTube/Spotify/SoundCloud player). Tokens/classes in
@@ -87,6 +95,14 @@ returns `{query, results}` w/ a `similarity` per result), `GET /musicians/compat
 (Bearer; `{completeness, suggestions, tip}`; `tip` null when no key). Connections:
 `POST /connections/requests/`, `GET /connections/requests/?box=incoming|outgoing`
 (cursor-paginated), `GET|.../accept/|.../decline/`.
+**Phase 3 listings:** `GET /listings/` (cursor-paginated, filters: type/city/country,
+active-only), `POST /listings/` (Bearer), `GET /listings/<id>/`, `PATCH|DELETE
+/listings/<id>/` (Bearer, author-only; DELETE = soft-delete → 204), `POST
+/listings/<id>/apply/` (Bearer; 400 self-apply, 409 duplicate), `GET
+/listings/applications/?box=incoming|outgoing` (Bearer, cursor-paginated; read
+carries `listing_id`, `listing_title`, `applicant_username`, `contact_email`
+revealed only when `accepted`), `POST /listings/applications/<id>/accept|decline/`
+(Bearer, listing author only; 409 if already resolved).
 
 > `/auth/me/`, `/musicians/instruments/`, `/musicians/genres/`, and the `username`
 > field on profile responses were **added to the backend to support this client**

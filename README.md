@@ -62,6 +62,21 @@ quietly** when AI is unavailable server-side (e.g. no `OPENAI_API_KEY`):
   (0–100), rule-based per-field suggestions, and an LLM tip. Auto-refreshes after
   every save, so the score climbs as you fill the profile in.
 
+## What it covers (Phase 3 — gig & audition board)
+
+The backend's listings board surfaced as a self-contained section at `/board`:
+
+- **Board** — browse active listings (gig / audition / venue), filter by type,
+  city, and country, cursor-paginated. Public. Each card is colour-coded by type
+  and shows pay + apply-by deadline at a glance.
+- **Listing detail** (`/board/:id`) — full posting. Signed-in non-authors get an
+  apply panel (optional intro message); the author instead sees Edit / Take down /
+  View applications controls. Public read.
+- **Post / edit** (`/board/new`, `/board/:id/edit`) — one form for both, author-gated.
+- **Applications** (`/applications`) — incoming/outgoing inbox (mirrors Requests):
+  authors accept/decline applications to their listings; the contact email is
+  **revealed to both parties once accepted**.
+
 ## Design system
 
 The UI follows the **"Late-night studio"** direction — dark canvas, teal→violet
@@ -180,6 +195,19 @@ work without these deployed — the UI just degrades to its non-AI state:
 | `GET` | `/api/musicians/compatibility/<username>/` | "Why you might click" blurb (Bearer) |
 | `GET` | `/api/musicians/profile/coach/` | Profile-coach card in the editor (Bearer) |
 
+The Phase 3 board (see the backend repo, Phase 3) is driven entirely by the
+listings app:
+
+| Method | URL | Drives |
+|---|---|---|
+| `GET` | `/api/listings/` | Board browse + filter (`?type=`, `?city=`, `?country=`) |
+| `POST` | `/api/listings/` | Post a listing (Bearer) |
+| `GET` | `/api/listings/<id>/` | Listing detail page |
+| `PATCH` / `DELETE` | `/api/listings/<id>/` | Edit / soft-delete own listing (Bearer) |
+| `POST` | `/api/listings/<id>/apply/` | Apply to a listing (Bearer) |
+| `GET` | `/api/listings/applications/` | Applications inbox (`?box=incoming\|outgoing`, Bearer) |
+| `POST` | `/api/listings/applications/<id>/accept\|decline/` | Author resolves an application (Bearer) |
+
 ---
 
 ## Project structure
@@ -190,13 +218,15 @@ src/
 │   ├── client.js   #   instance + JWT refresh interceptor + error formatter
 │   ├── auth.js
 │   ├── musicians.js
-│   └── connections.js
+│   ├── connections.js
+│   └── listings.js
 ├── context/
 │   └── AuthContext.jsx   # session state, sign in/up/out, bootstrap on load
-├── components/     # Navbar, ProfileCard, ProtectedRoute, Spinner,
+├── components/     # Navbar, ProfileCard, ListingCard, ProtectedRoute, Spinner,
 │   │               #   EqMeter, OnAir, Waveform, SoundEmbed (design system)
-├── pages/          # Discover, Login, Register, PublicProfile,
-│   │               #   EditProfile, Requests, NotFound
+├── pages/          # Discover, Login, Register, PublicProfile, EditProfile,
+│   │               #   Requests, Board, ListingDetail, PostListing,
+│   │               #   Applications, NotFound
 ├── lib/
 │   ├── tokens.js       # localStorage token helpers
 │   ├── genreColors.js  # genre → accent color
