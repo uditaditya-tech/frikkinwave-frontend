@@ -29,12 +29,15 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-1 sm:gap-2">
           <NavLink to="/" end className={navClass}>
             Discover
           </NavLink>
           <NavLink to="/board" className={navClass}>
             Board
+          </NavLink>
+          <NavLink to="/bands" className={navClass}>
+            Bands
           </NavLink>
 
           {isAuthenticated ? (
@@ -44,6 +47,9 @@ export default function Navbar() {
               </NavLink>
               <NavLink to="/applications" className={navClass}>
                 Applications
+              </NavLink>
+              <NavLink to="/band-invites" className={navClass}>
+                Band invites
               </NavLink>
               <NavLink to="/profile" className={navClass}>
                 My profile

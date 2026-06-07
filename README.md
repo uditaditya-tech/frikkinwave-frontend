@@ -77,6 +77,21 @@ The backend's listings board surfaced as a self-contained section at `/board`:
   authors accept/decline applications to their listings; the contact email is
   **revealed to both parties once accepted**.
 
+## What it covers (Phase 4 — Block A: bands)
+
+The backend's bands app surfaced at `/bands` (Phase 4 ships in three blocks;
+this is the first):
+
+- **Bands** (`/bands`, public) — browse active bands, filter by city/country,
+  cursor-paginated. "Start a band" for signed-in users.
+- **Band page** (`/bands/:slug`, public) — name, bio, location, and the **lineup**
+  (owner + accepted members with roles). The owner sees Edit / Disband controls
+  plus an **invite-by-username** panel.
+- **Start / edit** (`/bands/new`, `/bands/:slug/edit`) — one owner-gated form.
+- **Band invites** (`/band-invites`) — invitations you've received; accept/decline,
+  with the owner's contact email **revealed once accepted**. (Owners invite from
+  the band page; only the invited member resolves the invite.)
+
 ## Design system
 
 The UI follows the **"Late-night studio"** direction — dark canvas, teal→violet
@@ -208,6 +223,18 @@ listings app:
 | `GET` | `/api/listings/applications/` | Applications inbox (`?box=incoming\|outgoing`, Bearer) |
 | `POST` | `/api/listings/applications/<id>/accept\|decline/` | Author resolves an application (Bearer) |
 
+Phase 4 Block A (bands) is driven by the bands app:
+
+| Method | URL | Drives |
+|---|---|---|
+| `GET` | `/api/bands/` | Bands browse + filter (`?city=`, `?country=`) |
+| `POST` | `/api/bands/` | Start a band (Bearer) |
+| `GET` | `/api/bands/<slug>/` | Band page (carries accepted `members` roster) |
+| `PATCH` / `DELETE` | `/api/bands/<slug>/` | Edit / soft-delete own band (Bearer, owner) |
+| `POST` | `/api/bands/<slug>/invite/` | Invite by username (Bearer, owner) |
+| `GET` | `/api/bands/memberships/` | Your received invites (Bearer; no box param) |
+| `POST` | `/api/bands/memberships/<id>/accept\|decline/` | Invited member resolves (Bearer) |
+
 ---
 
 ## Project structure
@@ -219,14 +246,15 @@ src/
 │   ├── auth.js
 │   ├── musicians.js
 │   ├── connections.js
-│   └── listings.js
+│   ├── listings.js
+│   └── bands.js
 ├── context/
 │   └── AuthContext.jsx   # session state, sign in/up/out, bootstrap on load
-├── components/     # Navbar, ProfileCard, ListingCard, ProtectedRoute, Spinner,
-│   │               #   EqMeter, OnAir, Waveform, SoundEmbed (design system)
+├── components/     # Navbar, ProfileCard, ListingCard, BandCard, ProtectedRoute,
+│   │               #   Spinner, EqMeter, OnAir, Waveform, SoundEmbed (design system)
 ├── pages/          # Discover, Login, Register, PublicProfile, EditProfile,
-│   │               #   Requests, Board, ListingDetail, PostListing,
-│   │               #   Applications, NotFound
+│   │               #   Requests, Board, ListingDetail, PostListing, Applications,
+│   │               #   Bands, BandDetail, EditBand, BandInvites, NotFound
 ├── lib/
 │   ├── tokens.js       # localStorage token helpers
 │   ├── genreColors.js  # genre → accent color

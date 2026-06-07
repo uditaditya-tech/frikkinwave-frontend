@@ -34,9 +34,13 @@ Vite 5 · React 18 · react-router v6 · Tailwind v3 · axios. File map is in
   **Phase 3 board**: Board (`/board`, browse/filter listings), ListingDetail
   (`/board/:id`, apply or author controls), PostListing (`/board/new` +
   `/board/:id/edit`, one form), Applications (`/applications`, incoming/outgoing),
+  the **Phase 4 Block A bands**: Bands (`/bands`, browse/filter), BandDetail
+  (`/bands/:slug`, roster + owner controls + invite), EditBand (`/bands/new` +
+  `/bands/:slug/edit`), BandInvites (`/band-invites`, received invites), and
   NotFound.
 - `ProtectedRoute` gates `/profile`, `/requests`, `/board/new`, `/board/:id/edit`,
-  and `/applications`. `/board` and `/board/:id` are public.
+  `/applications`, `/bands/new`, `/bands/:slug/edit`, and `/band-invites`. `/board`,
+  `/board/:id`, `/bands`, and `/bands/:slug` are public.
 - **Phase 2 AI features** (all surface backend endpoints; each degrades quietly
   when AI is unavailable server-side): semantic NL search on Discover, a
   "Why you might click" compatibility blurb on PublicProfile, and a completeness
@@ -45,6 +49,11 @@ Vite 5 · React 18 · react-router v6 · Tailwind v3 · axios. File map is in
 - **Phase 3 — gig & audition board** (`src/api/listings.js`, `ListingCard`): the
   listings board + applications. Listings are colour-coded by type; applications
   reuse the Requests incoming/outgoing + accept/decline + reveal-on-accept pattern.
+- **Phase 4 — Block A bands** (`src/api/bands.js`, `BandCard`): band pages keyed
+  by **slug** (not id), with an accepted-members roster + an owner invite-by-username
+  flow. `/bands/memberships/` lists only invites where you're the *invited member*
+  (no box param) — owners invite from the band page and don't manage invites in a
+  list. Phase 4 Blocks B (session marketplace) + C (venues) are not yet on the frontend.
 - **Design system** ("Late-night studio" — see `DESIGN.md`): components `EqMeter`,
   `OnAir`, `Waveform`, `SoundEmbed`; helpers `lib/genreColors.js` (genre→color) and
   `lib/embed.js` (track URL → YouTube/Spotify/SoundCloud player). Tokens/classes in
@@ -103,6 +112,14 @@ active-only), `POST /listings/` (Bearer), `GET /listings/<id>/`, `PATCH|DELETE
 carries `listing_id`, `listing_title`, `applicant_username`, `contact_email`
 revealed only when `accepted`), `POST /listings/applications/<id>/accept|decline/`
 (Bearer, listing author only; 409 if already resolved).
+**Phase 4 Block A bands:** `GET /bands/` (cursor-paginated, filters: city/country,
+active-only), `POST /bands/` (Bearer, returns `slug`), `GET /bands/<slug>/` (read
+carries `owner_username` + `members` accepted roster `[{member_username, role}]`),
+`PATCH|DELETE /bands/<slug>/` (Bearer, owner-only; DELETE = soft-delete → 204),
+`POST /bands/<slug>/invite/` {member_username, role?} (Bearer, owner), `GET
+/bands/memberships/` (Bearer; your received invites — read carries `band_slug`,
+`band_name`, `role`, `status`, `contact_email` revealed only when `accepted`),
+`POST /bands/memberships/<id>/accept|decline/` (Bearer, invited member only).
 
 > `/auth/me/`, `/musicians/instruments/`, `/musicians/genres/`, and the `username`
 > field on profile responses were **added to the backend to support this client**
