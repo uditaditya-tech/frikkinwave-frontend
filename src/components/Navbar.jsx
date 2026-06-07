@@ -33,11 +33,17 @@ export default function Navbar() {
           <NavLink to="/" end className={navClass}>
             Discover
           </NavLink>
+          <NavLink to="/board" className={navClass}>
+            Board
+          </NavLink>
 
           {isAuthenticated ? (
             <>
               <NavLink to="/requests" className={navClass}>
                 Requests
+              </NavLink>
+              <NavLink to="/applications" className={navClass}>
+                Applications
               </NavLink>
               <NavLink to="/profile" className={navClass}>
                 My profile

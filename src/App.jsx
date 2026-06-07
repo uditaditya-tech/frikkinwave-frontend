@@ -7,6 +7,10 @@ import Register from "./pages/Register";
 import PublicProfile from "./pages/PublicProfile";
 import EditProfile from "./pages/EditProfile";
 import Requests from "./pages/Requests";
+import Board from "./pages/Board";
+import ListingDetail from "./pages/ListingDetail";
+import PostListing from "./pages/PostListing";
+import Applications from "./pages/Applications";
 import NotFound from "./pages/NotFound";
 
 export default function App() {
@@ -19,6 +23,32 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/u/:username" element={<PublicProfile />} />
+          <Route path="/board" element={<Board />} />
+          <Route
+            path="/board/new"
+            element={
+              <ProtectedRoute>
+                <PostListing />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/board/:id/edit"
+            element={
+              <ProtectedRoute>
+                <PostListing />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/board/:id" element={<ListingDetail />} />
+          <Route
+            path="/applications"
+            element={
+              <ProtectedRoute>
+                <Applications />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/profile"
             element={
