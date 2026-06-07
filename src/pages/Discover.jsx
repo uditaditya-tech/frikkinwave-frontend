@@ -17,6 +17,7 @@ const EMPTY_FILTERS = {
   instrument: "",
   genre: "",
   available: false,
+  openToSession: false,
 };
 
 export default function Discover() {
@@ -68,6 +69,7 @@ export default function Discover() {
       genre: applied.genre,
     };
     if (applied.available) params.available = "true";
+    if (applied.openToSession) params.open_to_session = "true";
 
     listProfiles({ params })
       .then((data) => {
@@ -183,7 +185,7 @@ export default function Discover() {
       {!searchMode && (
       <form
         onSubmit={applyFilters}
-        className="card mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5"
+        className="card mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6"
       >
         <div>
           <label className="label">City</label>
@@ -248,7 +250,20 @@ export default function Discover() {
             Available only
           </label>
         </div>
-        <div className="flex gap-2 sm:col-span-2 lg:col-span-5">
+        <div className="flex items-end gap-2">
+          <label className="flex h-[42px] flex-1 cursor-pointer items-center gap-2 rounded-lg border border-ink-600 bg-ink-900 px-3 text-sm">
+            <input
+              type="checkbox"
+              className="accent-glow-500"
+              checked={filters.openToSession}
+              onChange={(e) =>
+                setFilters({ ...filters, openToSession: e.target.checked })
+              }
+            />
+            Session work
+          </label>
+        </div>
+        <div className="flex gap-2 sm:col-span-2 lg:col-span-6">
           <button type="submit" className="btn-primary">
             Apply filters
           </button>

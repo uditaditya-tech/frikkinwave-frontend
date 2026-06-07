@@ -51,6 +51,9 @@ export default function Navbar() {
               <NavLink to="/band-invites" className={navClass}>
                 Band invites
               </NavLink>
+              <NavLink to="/engagements" className={navClass}>
+                Engagements
+              </NavLink>
               <NavLink to="/profile" className={navClass}>
                 My profile
               </NavLink>

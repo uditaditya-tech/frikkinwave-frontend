@@ -73,13 +73,25 @@ export async function getProfileCoach() {
 }
 
 // Shape the editor state into the write-serializer payload.
-function toWritePayload({ bio, city, country, isAvailable, soundUrl, instruments, genres }) {
+function toWritePayload({
+  bio,
+  city,
+  country,
+  isAvailable,
+  soundUrl,
+  isOpenToSessionWork,
+  sessionRate,
+  instruments,
+  genres,
+}) {
   return {
     bio,
     city,
     country,
     is_available: isAvailable,
     sound_url: soundUrl,
+    is_open_to_session_work: isOpenToSessionWork,
+    session_rate: sessionRate,
     // instruments: [{ instrument: <id>, proficiency }]
     instruments: instruments.map((i) => ({
       instrument: i.instrumentId,
