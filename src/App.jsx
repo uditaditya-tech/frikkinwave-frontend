@@ -16,6 +16,8 @@ import BandDetail from "./pages/BandDetail";
 import EditBand from "./pages/EditBand";
 import BandInvites from "./pages/BandInvites";
 import Engagements from "./pages/Engagements";
+import Feed from "./pages/Feed";
+import FollowList from "./pages/FollowList";
 import Venues from "./pages/Venues";
 import VenueDetail from "./pages/VenueDetail";
 import EditVenue from "./pages/EditVenue";
@@ -31,6 +33,8 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/u/:username" element={<PublicProfile />} />
+          <Route path="/u/:username/followers" element={<FollowList />} />
+          <Route path="/u/:username/following" element={<FollowList />} />
           <Route path="/board" element={<Board />} />
           <Route
             path="/board/new"
@@ -88,6 +92,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Engagements />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/feed"
+            element={
+              <ProtectedRoute>
+                <Feed />
               </ProtectedRoute>
             }
           />

@@ -3,6 +3,13 @@ import { Link, useParams } from "react-router-dom";
 import { getCompatibility, getPublicProfile } from "../api/musicians";
 import { sendRequest } from "../api/connections";
 import { sendEngagement } from "../api/engagements";
+import {
+  followUser,
+  listUserFollowers,
+  listUserFollowing,
+  unfollowUser,
+} from "../api/social";
+import { listReviews } from "../api/reviews";
 import { apiErrorMessage } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import Spinner from "../components/Spinner";
@@ -206,6 +213,155 @@ function HirePanel({ username, rate }) {
   );
 }
 
+// A 1–5 star row (filled ★ up to `value`, hollow ☆ after).
+function Stars({ value }) {
+  return (
+    <span className="text-glow-400" aria-label={`${value} out of 5`}>
+      {"★".repeat(value)}
+      <span className="text-slate-600">{"☆".repeat(5 - value)}</span>
+    </span>
+  );
+}
+
+// Follower/following counts + a follow toggle. Counts and initial follow state
+// come from the public follower/following lists. Cursor pagination has no total,
+// so a count is shown as exact only when the list fits one page (else `N+`); the
+// follow state is read from the first page of followers (known limitation: a
+// viewer past page one would read as "not following" — see plan).
+function FollowPanel({ username, viewerUsername, canFollow }) {
+  const [followers, setFollowers] = useState({ count: 0, more: false });
+  const [following, setFollowing] = useState({ count: 0, more: false });
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([listUserFollowers(username), listUserFollowing(username)])
+      .then(([fr, fg]) => {
+        if (cancelled) return;
+        const frRows = fr.results || [];
+        setFollowers({ count: frRows.length, more: Boolean(fr.next) });
+        setFollowing({ count: (fg.results || []).length, more: Boolean(fg.next) });
+        if (viewerUsername) {
+          setIsFollowing(frRows.some((r) => r.username === viewerUsername));
+        }
+      })
+      .catch(() => {
+        /* counts are non-critical — leave at zero on error */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [username, viewerUsername]);
+
+  async function toggle() {
+    const next = !isFollowing;
+    setBusy(true);
+    setIsFollowing(next);
+    setFollowers((f) => ({ ...f, count: f.count + (next ? 1 : -1) }));
+    try {
+      await (next ? followUser(username) : unfollowUser(username));
+    } catch {
+      // revert on failure
+      setIsFollowing(!next);
+      setFollowers((f) => ({ ...f, count: f.count + (next ? -1 : 1) }));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const fmt = (c) => (c.more ? `${c.count}+` : c.count);
+
+  return (
+    <div className="mt-4 flex flex-wrap items-center gap-3">
+      <Link to={`/u/${username}/followers`} className="text-sm text-slate-300 hover:text-white">
+        <span className="font-semibold text-white">{fmt(followers)}</span> followers
+      </Link>
+      <Link to={`/u/${username}/following`} className="text-sm text-slate-300 hover:text-white">
+        <span className="font-semibold text-white">{fmt(following)}</span> following
+      </Link>
+      {canFollow && (
+        <button
+          onClick={toggle}
+          disabled={busy}
+          className={isFollowing ? "btn-ghost" : "btn-primary"}
+        >
+          {isFollowing ? "Following" : "Follow"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// Reviews this musician has received (public). Each is gated server-side on a
+// completed engagement, so anything shown here is from a real working relationship.
+function ReviewsCard({ username }) {
+  const [items, setItems] = useState([]);
+  const [nextUrl, setNextUrl] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    listReviews(username)
+      .then((data) => {
+        if (cancelled) return;
+        setItems(data.results || []);
+        setNextUrl(data.next || null);
+      })
+      .catch(() => {
+        /* reviews are non-critical — hide on error */
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [username]);
+
+  async function loadMore() {
+    if (!nextUrl) return;
+    const data = await listReviews(username, { cursorUrl: nextUrl });
+    setItems((prev) => [...prev, ...(data.results || [])]);
+    setNextUrl(data.next || null);
+  }
+
+  if (loading || items.length === 0) return null;
+
+  return (
+    <div className="card mt-6">
+      <h2 className="text-lg font-semibold text-white">Reviews</h2>
+      <div className="mt-3 space-y-3">
+        {items.map((r) => (
+          <div key={r.id} className="border-t border-ink-800 pt-3 first:border-0 first:pt-0">
+            <div className="flex items-center justify-between gap-2">
+              <Link
+                to={`/u/${r.author_username}`}
+                className="text-sm font-semibold text-white hover:text-wave-400"
+              >
+                @{r.author_username}
+              </Link>
+              <Stars value={r.rating} />
+            </div>
+            {r.comment && (
+              <p className="mt-1 whitespace-pre-line text-sm text-slate-300">{r.comment}</p>
+            )}
+            <p className="mt-1 text-xs text-slate-500">
+              {new Date(r.created_at).toLocaleDateString()}
+            </p>
+          </div>
+        ))}
+        {nextUrl && (
+          <button onClick={loadMore} className="btn-ghost">
+            Load more
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function PublicProfile() {
   const { username } = useParams();
   const { user, isAuthenticated } = useAuth();
@@ -272,14 +428,26 @@ export default function PublicProfile() {
           />
         </div>
 
-        {profile.is_open_to_session_work && (
-          <div className="mt-3">
+        <div className="mt-3 flex flex-wrap gap-2">
+          {profile.is_open_to_session_work && (
             <span className="chip border-glow-500/40 text-glow-400">
               ✦ Open to session work
               {profile.session_rate ? ` · ${profile.session_rate}` : ""}
             </span>
-          </div>
-        )}
+          )}
+          {profile.rating?.count > 0 && (
+            <span className="chip border-glow-500/40 text-glow-300">
+              ★ {profile.rating.average_rating} · {profile.rating.count}{" "}
+              review{profile.rating.count === 1 ? "" : "s"}
+            </span>
+          )}
+        </div>
+
+        <FollowPanel
+          username={profile.username}
+          viewerUsername={user?.username}
+          canFollow={isAuthenticated && !isSelf}
+        />
 
         {profile.bio && (
           <p className="mt-4 whitespace-pre-line text-slate-300">{profile.bio}</p>
@@ -361,6 +529,8 @@ export default function PublicProfile() {
           to send a contact request.
         </p>
       )}
+
+      <ReviewsCard username={profile.username} />
     </div>
   );
 }
