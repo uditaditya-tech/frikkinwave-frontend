@@ -39,6 +39,9 @@ export default function Navbar() {
           <NavLink to="/bands" className={navClass}>
             Bands
           </NavLink>
+          <NavLink to="/venues" className={navClass}>
+            Venues
+          </NavLink>
 
           {isAuthenticated ? (
             <>

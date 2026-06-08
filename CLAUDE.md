@@ -37,10 +37,13 @@ Vite 5 · React 18 · react-router v6 · Tailwind v3 · axios. File map is in
   the **Phase 4 Block A bands**: Bands (`/bands`, browse/filter), BandDetail
   (`/bands/:slug`, roster + owner controls + invite), EditBand (`/bands/new` +
   `/bands/:slug/edit`), BandInvites (`/band-invites`, received invites), the
-  **Block B** Engagements (`/engagements`, session-work hire inbox), and NotFound.
+  **Block B** Engagements (`/engagements`, session-work hire inbox), the **Block C**
+  venues: Venues (`/venues`, browse/filter), VenueDetail (`/venues/:slug`, public +
+  owner controls), EditVenue (`/venues/new` + `/venues/:slug/edit`), and NotFound.
 - `ProtectedRoute` gates `/profile`, `/requests`, `/board/new`, `/board/:id/edit`,
-  `/applications`, `/bands/new`, `/bands/:slug/edit`, `/band-invites`, and
-  `/engagements`. `/board`, `/board/:id`, `/bands`, and `/bands/:slug` are public.
+  `/applications`, `/bands/new`, `/bands/:slug/edit`, `/band-invites`,
+  `/engagements`, `/venues/new`, and `/venues/:slug/edit`. `/board`, `/board/:id`,
+  `/bands`, `/bands/:slug`, `/venues`, and `/venues/:slug` are public.
 - **Phase 2 AI features** (all surface backend endpoints; each degrades quietly
   when AI is unavailable server-side): semantic NL search on Discover, a
   "Why you might click" compatibility blurb on PublicProfile, and a completeness
@@ -59,7 +62,11 @@ Vite 5 · React 18 · react-router v6 · Tailwind v3 · axios. File map is in
   EditProfile, PublicProfile, and a Discover `open_to_session` filter) plus the
   `EngagementRequest` hire flow. Engagements add a 4th status `completed` and a
   `complete` action either party can take from `accepted` (hire-intent only, no
-  payments). Phase 4 Block C (venues) is not yet on the frontend.
+  payments).
+- **Phase 4 — Block C venues** (`src/api/venues.js`, `VenueCard`): user-owned venue
+  profiles keyed by **slug**, plain owner CRUD + a public page + browse/filter — no
+  invite/reveal flow. Completes Phase 4 on the frontend. (Backend Phase 5 — social
+  layer — is not yet built, so the frontend is now caught up to the backend.)
 - **Design system** ("Late-night studio" — see `DESIGN.md`): components `EqMeter`,
   `OnAir`, `Waveform`, `SoundEmbed`; helpers `lib/genreColors.js` (genre→color) and
   `lib/embed.js` (track URL → YouTube/Spotify/SoundCloud player). Tokens/classes in
@@ -135,6 +142,11 @@ proposed_date?, rate_offer?} (Bearer), `GET /engagements/?box=incoming|outgoing`
 `contact_email` revealed when accepted **or** completed), `POST
 /engagements/<id>/accept|decline/` (Bearer, hired musician only), `POST
 /engagements/<id>/complete/` (Bearer, either party, only from accepted).
+**Phase 4 Block C venues:** `GET /venues/` (cursor-paginated, filters: city/country,
+active-only), `POST /venues/` (Bearer, returns `slug`), `GET /venues/<slug>/` (read
+carries `owner_username`, `name`, `description`, `address`, `city`, `country`,
+`capacity`, `website`), `PATCH|DELETE /venues/<slug>/` (Bearer, owner-only; DELETE =
+soft-delete → 204).
 
 > `/auth/me/`, `/musicians/instruments/`, `/musicians/genres/`, and the `username`
 > field on profile responses were **added to the backend to support this client**
