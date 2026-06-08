@@ -37,9 +37,20 @@ like music software, not a generic SaaS dashboard.
 - **`Waveform`** — decorative SVG waveform strip (card footers, dividers). Tints from
   `ink-700` → `wave-500/50` on card hover.
 - **Glassy neon card** (`.card`) — `ink-900/60` + `backdrop-blur` + hairline border;
-  on hover: lift, border lights teal, `shadow-glow-teal`. Genre color as a left rail.
+  on hover (`.card-interactive`): lift, border lights teal, `shadow-glow-teal`. A
+  left **accent rail** carries the entity's color (see below).
+- **Feed cards** — `ProfileCard` (genre-hued rail), `ListingCard` (rail + chip by
+  listing type — gig=teal, audition=violet, venue=amber), `BandCard` (violet rail),
+  `VenueCard` (amber rail). All link to a slug/username detail page.
+- **Glow-accent panel** — `card` + `border-glow-500/30 bg-glow-500/5`: the violet-
+  tinted call-out used for the AI panels (compatibility, profile coach), the band
+  **invite** panel, and the **Hire for a session** form. The one glow per surface.
+- **Status chips + reveal** — pending=amber, accepted=teal, completed=violet,
+  declined=muted; on accept the masked contact email "unlocks" into a teal box.
+  Shared across Requests, Applications, Band invites, and Engagements.
 - **Buttons** — `.btn-primary` is the teal→violet gradient with a hover glow;
-  `.btn-ghost` is a hairline border that lights teal.
+  `.btn-ghost` is a hairline border that lights teal; `.btn-danger` is a rose
+  hairline (take-down / disband / decline).
 
 ## Motion
 
@@ -49,17 +60,29 @@ gated** behind `prefers-reduced-motion` (`motion-safe:` variants / media query).
 ## Per-page application
 
 - **Discover** — spotlight hero (gradient blobs + `font-display` headline, gradient
-  word "jam partner"); filters as a compact strip; card grid with hover waveform.
-  Future: map toggle (geo discovery).
+  word "jam partner"); a natural-language **semantic search** bar that flips the feed
+  into a results mode (cards carry a violet **% match** badge); filters as a compact
+  strip (incl. availability + session-work toggles); card grid with hover waveform.
 - **Public profile** — handle in `font-display`, `OnAir`, `EqMeter` instrument rows,
-  color-coded genre chips, waveform footer; sticky Contact on mobile.
-- **Requests** — inbox/thread feel; status as stage cues; "unlock" reveal for email.
-- **Onboarding (future)** — "tune your profile" stepper with live preview + completeness
-  tuner.
+  color-coded genre chips, embedded `SoundEmbed` track player, waveform footer. For
+  signed-in viewers: the **compatibility** glow-panel, a **Hire for a session** glow-
+  panel (when the musician is open to session work, with a session-rate chip), and the
+  contact-request form.
+- **Profile editor** — the **profile coach** glow-panel up top (completeness meter +
+  per-field nudges + LLM tip); instrument rows with `EqMeter` selectors; genre chips;
+  the session-work toggle + rate.
+- **Board / Bands / Venues** — each a browse header (title + "post/start/list" primary
+  action) over a filter card and a feed grid; detail pages lead with the entity, then
+  show owner/author controls (edit + take-down/disband) and the apply/invite affordance.
+  Bands show a **lineup** (owner chip + accepted-member roster).
+- **Inboxes** (Requests, Applications, Band invites, Engagements) — shared incoming/
+  outgoing toggle, status-chip rows, accept/decline (and "mark complete" for
+  engagements), and the unlock-on-accept email reveal.
 
 ## Planned (not yet built)
 
-- **`sound_url` on `MusicianProfile` (Phase 1.5, backend change).** Embed
-  SoundCloud/Spotify/YouTube on profiles + hover audio preview on cards. Highest-impact
-  musician feature; needs a backend field + migration + redeploy — deferred until approved.
-- Light-mode variant; auto-generated OG share images for `/u/:username`.
+- **Phase 5 — social layer** (awaiting the backend): follow/feed, ratings & reviews,
+  and real-time messaging (Django Channels) — the inbox/reveal pattern likely
+  graduates into real threads.
+- Light-mode variant; auto-generated OG share images for `/u/:username`; map toggle
+  on Discover (geo discovery).
