@@ -6,8 +6,92 @@ import {
   declineEngagement,
   listEngagements,
 } from "../api/engagements";
+import { createReview } from "../api/reviews";
 import { apiErrorMessage } from "../api/client";
 import Spinner from "../components/Spinner";
+
+// Inline review form shown on a completed engagement. The completed engagement is
+// what authorises the review server-side, so its id gates the POST.
+function ReviewForm({ subjectUsername, engagementId }) {
+  const [open, setOpen] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const [status, setStatus] = useState({ type: "idle", text: "" });
+  const [saving, setSaving] = useState(false);
+
+  if (status.type === "done") {
+    return (
+      <p className="mt-3 rounded-lg border border-glow-500/30 bg-glow-500/10 px-3 py-2 text-sm text-glow-200">
+        Thanks — your review of @{subjectUsername} is posted.
+      </p>
+    );
+  }
+
+  if (!open) {
+    return (
+      <button onClick={() => setOpen(true)} className="btn-ghost mt-4">
+        Leave a review
+      </button>
+    );
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setSaving(true);
+    setStatus({ type: "idle", text: "" });
+    try {
+      await createReview({ subjectUsername, engagementId, rating, comment });
+      setStatus({ type: "done", text: "" });
+    } catch (err) {
+      setStatus({
+        type: "error",
+        text: apiErrorMessage(err, "Couldn't post your review."),
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-4 rounded-lg border border-ink-700 bg-ink-900/60 p-3">
+      <p className="text-sm font-medium text-white">Review @{subjectUsername}</p>
+      <div className="mt-2 flex items-center gap-1" role="radiogroup" aria-label="Rating">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <button
+            key={n}
+            type="button"
+            onClick={() => setRating(n)}
+            aria-label={`${n} star${n === 1 ? "" : "s"}`}
+            className={`text-2xl leading-none ${
+              n <= rating ? "text-glow-400" : "text-slate-600"
+            }`}
+          >
+            ★
+          </button>
+        ))}
+      </div>
+      <textarea
+        className="input mt-3 min-h-[70px] resize-y"
+        placeholder="How was working with them? (optional)"
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+      />
+      {status.text && (
+        <p className="mt-2 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
+          {status.text}
+        </p>
+      )}
+      <div className="mt-3 flex gap-2">
+        <button type="submit" disabled={saving} className="btn-primary">
+          {saving ? "Posting…" : "Post review"}
+        </button>
+        <button type="button" onClick={() => setOpen(false)} className="btn-ghost">
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
 
 const STATUS_STYLES = {
   pending: "border-amber-500/40 text-amber-300",
@@ -100,6 +184,10 @@ function EngagementRow({ eng, box, onAct, acting }) {
             </button>
           )}
         </div>
+      )}
+
+      {eng.status === "completed" && (
+        <ReviewForm subjectUsername={other} engagementId={eng.id} />
       )}
     </div>
   );

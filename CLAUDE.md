@@ -37,13 +37,16 @@ Vite 5 · React 18 · react-router v6 · Tailwind v3 · axios. File map is in
   the **Phase 4 Block A bands**: Bands (`/bands`, browse/filter), BandDetail
   (`/bands/:slug`, roster + owner controls + invite), EditBand (`/bands/new` +
   `/bands/:slug/edit`), BandInvites (`/band-invites`, received invites), the
-  **Block B** Engagements (`/engagements`, session-work hire inbox), the **Block C**
-  venues: Venues (`/venues`, browse/filter), VenueDetail (`/venues/:slug`, public +
-  owner controls), EditVenue (`/venues/new` + `/venues/:slug/edit`), and NotFound.
+  **Block B** Engagements (`/engagements`, session-work hire inbox + Phase 5
+  review entry), the **Block C** venues: Venues (`/venues`, browse/filter),
+  VenueDetail (`/venues/:slug`, public + owner controls), EditVenue (`/venues/new` +
+  `/venues/:slug/edit`), the **Phase 5** Feed (`/feed`, activity feed) and FollowList
+  (`/u/:username/followers` + `/u/:username/following`), and NotFound.
 - `ProtectedRoute` gates `/profile`, `/requests`, `/board/new`, `/board/:id/edit`,
   `/applications`, `/bands/new`, `/bands/:slug/edit`, `/band-invites`,
-  `/engagements`, `/venues/new`, and `/venues/:slug/edit`. `/board`, `/board/:id`,
-  `/bands`, `/bands/:slug`, `/venues`, and `/venues/:slug` are public.
+  `/engagements`, `/feed`, `/venues/new`, and `/venues/:slug/edit`. `/board`,
+  `/board/:id`, `/bands`, `/bands/:slug`, `/venues`, `/venues/:slug`, `/u/:username`,
+  and the `/u/:username/followers|following` lists are public.
 - **Phase 2 AI features** (all surface backend endpoints; each degrades quietly
   when AI is unavailable server-side): semantic NL search on Discover, a
   "Why you might click" compatibility blurb on PublicProfile, and a completeness
@@ -65,8 +68,20 @@ Vite 5 · React 18 · react-router v6 · Tailwind v3 · axios. File map is in
   payments).
 - **Phase 4 — Block C venues** (`src/api/venues.js`, `VenueCard`): user-owned venue
   profiles keyed by **slug**, plain owner CRUD + a public page + browse/filter — no
-  invite/reveal flow. Completes Phase 4 on the frontend. (Backend Phase 5 — social
-  layer — is not yet built, so the frontend is now caught up to the backend.)
+  invite/reveal flow. Completes Phase 4 on the frontend.
+- **Phase 5 — social layer** (`src/api/social.js`, `src/api/reviews.js`): three
+  blocks, all shipped on the frontend. **A — follow graph:** follow/unfollow toggle +
+  follower/following counts on PublicProfile, with public list pages at
+  `/u/:username/followers` and `/u/:username/following` (one `FollowList` component).
+  **B — activity feed:** `Feed` page at `/feed` (protected) showing what followed
+  users posted (listings/bands), newest first. **C — ratings/reviews:** a 1–5★ review
+  is gated on a **completed engagement**, so "Leave a review" lives on completed rows
+  in the Engagements page; reviews + an average-rating badge render on PublicProfile
+  (the single-profile payload already embeds `rating: {average_rating, count}`).
+  Block D (real-time messaging) is deferred on the backend — not built here.
+  Known limitation: follow-state + counts are derived from the public follower/
+  following lists (first cursor page), since the profile payload carries no
+  `is_following`/count field — fine at current scale.
 - **Design system** ("Late-night studio" — see `DESIGN.md`): components `EqMeter`,
   `OnAir`, `Waveform`, `SoundEmbed`; helpers `lib/genreColors.js` (genre→color) and
   `lib/embed.js` (track URL → YouTube/Spotify/SoundCloud player). Tokens/classes in
@@ -147,6 +162,22 @@ active-only), `POST /venues/` (Bearer, returns `slug`), `GET /venues/<slug>/` (r
 carries `owner_username`, `name`, `description`, `address`, `city`, `country`,
 `capacity`, `website`), `PATCH|DELETE /venues/<slug>/` (Bearer, owner-only; DELETE =
 soft-delete → 204).
+**Phase 5 Block A follow graph:** `POST /social/follow/<username>/` (Bearer,
+idempotent — re-follow 200 no-op), `DELETE /social/follow/<username>/` (Bearer,
+idempotent — 204 even if not following), `GET /social/following/` +
+`GET /social/followers/` (Bearer, caller's own; cursor-paginated), `GET
+/social/<username>/following/` + `GET /social/<username>/followers/` (public;
+rows `{username, created_at}`). **Block B feed:** `GET /social/feed/` (Bearer,
+cursor-paginated, newest first; rows `{id, actor_username, verb, summary,
+target_type, target_id, target_slug, created_at}` where `verb` ∈
+posted_listing/created_band and `target_type` ∈ listing (→ `/board/<target_id>`) /
+band (→ `/bands/<target_slug>`)). **Block C reviews:** `POST /reviews/`
+{subject_username, engagement_id, rating 1–5, comment?} (Bearer; gated on a
+**completed** engagement between the two users), `GET /reviews/<username>/` (public,
+cursor-paginated; rows `{id, author_username, subject_username, rating, comment,
+context_type, context_id, created_at}`), `GET /reviews/<username>/summary/` (public
+`{average_rating, count}`). Single-profile musician payloads embed
+`rating: {average_rating, count}`.
 
 > `/auth/me/`, `/musicians/instruments/`, `/musicians/genres/`, and the `username`
 > field on profile responses were **added to the backend to support this client**

@@ -45,6 +45,9 @@ export default function Navbar() {
 
           {isAuthenticated ? (
             <>
+              <NavLink to="/feed" className={navClass}>
+                Feed
+              </NavLink>
               <NavLink to="/requests" className={navClass}>
                 Requests
               </NavLink>
