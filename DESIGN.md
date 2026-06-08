@@ -64,10 +64,14 @@ gated** behind `prefers-reduced-motion` (`motion-safe:` variants / media query).
   into a results mode (cards carry a violet **% match** badge); filters as a compact
   strip (incl. availability + session-work toggles); card grid with hover waveform.
 - **Public profile** — handle in `font-display`, `OnAir`, `EqMeter` instrument rows,
-  color-coded genre chips, embedded `SoundEmbed` track player, waveform footer. For
-  signed-in viewers: the **compatibility** glow-panel, a **Hire for a session** glow-
-  panel (when the musician is open to session work, with a session-rate chip), and the
-  contact-request form.
+  color-coded genre chips, embedded `SoundEmbed` track player, waveform footer. A
+  **rating badge** (★ average · count) and **follower / following counts** sit in the
+  header; signed-in non-self viewers get a **follow toggle**. Below: the
+  **compatibility** glow-panel, a **Hire for a session** glow-panel (when the musician
+  is open to session work, with a session-rate chip), the contact-request form, and a
+  **reviews** list (star rows + comments).
+- **Feed** — a single-column river of follow-graph activity (who posted a listing /
+  created a band), newest first, each line linking through to the entity.
 - **Profile editor** — the **profile coach** glow-panel up top (completeness meter +
   per-field nudges + LLM tip); instrument rows with `EqMeter` selectors; genre chips;
   the session-work toggle + rate.
@@ -81,8 +85,9 @@ gated** behind `prefers-reduced-motion` (`motion-safe:` variants / media query).
 
 ## Planned (not yet built)
 
-- **Phase 5 — social layer** (awaiting the backend): follow/feed, ratings & reviews,
-  and real-time messaging (Django Channels) — the inbox/reveal pattern likely
-  graduates into real threads.
+- **Phase 5 — social layer**: follow graph, activity feed, and ratings & reviews are
+  **shipped** (reusing existing chips/cards + a simple star row — no new primitives).
+  Only **Block D, real-time messaging** (Django Channels) remains — the inbox/reveal
+  pattern likely graduates into real threads.
 - Light-mode variant; auto-generated OG share images for `/u/:username`; map toggle
   on Discover (geo discovery).

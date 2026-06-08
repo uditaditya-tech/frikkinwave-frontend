@@ -117,6 +117,23 @@ User-owned venue profiles — the simplest block (plain CRUD, no invite/reveal):
 
 This completes Phase 4 on the frontend (Blocks A + B + C).
 
+## What it covers (Phase 5 — social layer)
+
+The backend's social layer surfaced in three blocks (Block D, real-time
+messaging, is deferred on the backend and not built here):
+
+- **Follow graph** — a follow / unfollow toggle on public profiles, with
+  **follower / following counts** that link to public list pages at
+  `/u/:username/followers` and `/u/:username/following`.
+- **Activity feed** (`/feed`) — what the people you follow have been up to
+  (new listings and bands), newest first, cursor-paginated. Each item links
+  through to the listing or band. Signed-in only.
+- **Ratings & reviews** — a 1–5★ review is gated on a **completed engagement**,
+  so "Leave a review" appears on completed rows in the Engagements inbox.
+  Reviews received + an **average-rating badge** show on the public profile.
+
+This brings the frontend level with the backend through Phase 5.
+
 ## Design system
 
 The UI follows the **"Late-night studio"** direction — dark canvas, teal→violet
@@ -283,6 +300,21 @@ Phase 4 Block C (venues) is plain CRUD over the venues app:
 | `GET` | `/api/venues/<slug>/` | Venue page |
 | `PATCH` / `DELETE` | `/api/venues/<slug>/` | Edit / soft-delete own venue (Bearer, owner) |
 
+Phase 5 (social layer) is driven by the `social` and `reviews` apps:
+
+| Method | URL | Drives |
+|---|---|---|
+| `POST` / `DELETE` | `/api/social/follow/<username>/` | Follow / unfollow a user (Bearer, idempotent) |
+| `GET` | `/api/social/<username>/followers\|following/` | Public follower / following lists |
+| `GET` | `/api/social/following\|followers/` | The caller's own follow lists (Bearer) |
+| `GET` | `/api/social/feed/` | Activity feed of followed users (Bearer) |
+| `POST` | `/api/reviews/` | Leave a review (Bearer; gated on a completed engagement) |
+| `GET` | `/api/reviews/<username>/` | Public reviews a user received |
+| `GET` | `/api/reviews/<username>/summary/` | Public `{average_rating, count}` |
+
+Single-profile read serializers also now embed `rating: {average_rating, count}`
+(shown as the rating badge on the public profile).
+
 ---
 
 ## Project structure
@@ -297,7 +329,9 @@ src/
 │   ├── listings.js
 │   ├── bands.js
 │   ├── engagements.js
-│   └── venues.js
+│   ├── venues.js
+│   ├── social.js
+│   └── reviews.js
 ├── context/
 │   └── AuthContext.jsx   # session state, sign in/up/out, bootstrap on load
 ├── components/     # Navbar, ProfileCard, ListingCard, BandCard, VenueCard,
@@ -305,7 +339,7 @@ src/
 ├── pages/          # Discover, Login, Register, PublicProfile, EditProfile,
 │   │               #   Requests, Board, ListingDetail, PostListing, Applications,
 │   │               #   Bands, BandDetail, EditBand, BandInvites, Engagements,
-│   │               #   Venues, VenueDetail, EditVenue, NotFound
+│   │               #   Venues, VenueDetail, EditVenue, Feed, FollowList, NotFound
 ├── lib/
 │   ├── tokens.js       # localStorage token helpers
 │   ├── genreColors.js  # genre → accent color
