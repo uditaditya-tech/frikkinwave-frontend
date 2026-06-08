@@ -16,6 +16,9 @@ import BandDetail from "./pages/BandDetail";
 import EditBand from "./pages/EditBand";
 import BandInvites from "./pages/BandInvites";
 import Engagements from "./pages/Engagements";
+import Venues from "./pages/Venues";
+import VenueDetail from "./pages/VenueDetail";
+import EditVenue from "./pages/EditVenue";
 import NotFound from "./pages/NotFound";
 
 export default function App() {
@@ -88,6 +91,24 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/venues" element={<Venues />} />
+          <Route
+            path="/venues/new"
+            element={
+              <ProtectedRoute>
+                <EditVenue />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/venues/:slug/edit"
+            element={
+              <ProtectedRoute>
+                <EditVenue />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/venues/:slug" element={<VenueDetail />} />
           <Route
             path="/profile"
             element={

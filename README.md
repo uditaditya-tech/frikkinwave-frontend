@@ -105,6 +105,18 @@ Hire-intent only (no payments), surfaced across profiles + a hire flow:
   accepts/declines; **contact email is revealed on accept**; either party can then
   **mark the engagement complete** (contact stays revealed).
 
+## What it covers (Phase 4 — Block C: venues)
+
+User-owned venue profiles — the simplest block (plain CRUD, no invite/reveal):
+
+- **Venues** (`/venues`, public) — browse active venues, filter by city/country,
+  cursor-paginated. "List a venue" for signed-in users.
+- **Venue page** (`/venues/:slug`, public) — name, description, address, city/country,
+  capacity, and website. The owner sees Edit / Take down controls.
+- **List / edit** (`/venues/new`, `/venues/:slug/edit`) — one owner-gated form.
+
+This completes Phase 4 on the frontend (Blocks A + B + C).
+
 ## Design system
 
 The UI follows the **"Late-night studio"** direction — dark canvas, teal→violet
@@ -262,6 +274,15 @@ plus the engagements app:
 The profile read/write serializers also now carry `is_open_to_session_work` and
 `session_rate` (set in the editor, shown on the public profile).
 
+Phase 4 Block C (venues) is plain CRUD over the venues app:
+
+| Method | URL | Drives |
+|---|---|---|
+| `GET` | `/api/venues/` | Venues browse + filter (`?city=`, `?country=`) |
+| `POST` | `/api/venues/` | List a venue (Bearer) |
+| `GET` | `/api/venues/<slug>/` | Venue page |
+| `PATCH` / `DELETE` | `/api/venues/<slug>/` | Edit / soft-delete own venue (Bearer, owner) |
+
 ---
 
 ## Project structure
@@ -275,14 +296,16 @@ src/
 │   ├── connections.js
 │   ├── listings.js
 │   ├── bands.js
-│   └── engagements.js
+│   ├── engagements.js
+│   └── venues.js
 ├── context/
 │   └── AuthContext.jsx   # session state, sign in/up/out, bootstrap on load
-├── components/     # Navbar, ProfileCard, ListingCard, BandCard, ProtectedRoute,
-│   │               #   Spinner, EqMeter, OnAir, Waveform, SoundEmbed (design system)
+├── components/     # Navbar, ProfileCard, ListingCard, BandCard, VenueCard,
+│   │               #   ProtectedRoute, Spinner, EqMeter, OnAir, Waveform, SoundEmbed
 ├── pages/          # Discover, Login, Register, PublicProfile, EditProfile,
 │   │               #   Requests, Board, ListingDetail, PostListing, Applications,
-│   │               #   Bands, BandDetail, EditBand, BandInvites, Engagements, NotFound
+│   │               #   Bands, BandDetail, EditBand, BandInvites, Engagements,
+│   │               #   Venues, VenueDetail, EditVenue, NotFound
 ├── lib/
 │   ├── tokens.js       # localStorage token helpers
 │   ├── genreColors.js  # genre → accent color
